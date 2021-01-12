@@ -1,5 +1,5 @@
 defmodule Naive.Trader do
-  use GenServer
+  use GenServer, restart: :temporary
 
   alias Decimal, as: D
   alias Streamer.Binance.TradeEvent
@@ -19,11 +19,11 @@ defmodule Naive.Trader do
     ]
   end
 
-  def start_link(%{} = args) do
-    GenServer.start_link(__MODULE__, args, name: :trader)
+  def start_link(%State{} = state) do
+    GenServer.start_link(__MODULE__, state)
   end
 
-  def init(%{symbol: symbol, profit_interval: profit_interval}) do
+  def init(%State{symbol: symbol} = state) do
     symbol = String.upcase(symbol)
 
     Logger.info("Initializing new trader for symbol(#{symbol})")
@@ -33,14 +33,7 @@ defmodule Naive.Trader do
       "trade_events:#{symbol}"
     )
 
-    tick_size = fetch_tick_size(symbol)
-
-    {:ok,
-     %State{
-       symbol: symbol,
-       profit_interval: profit_interval,
-       tick_size: tick_size
-     }}
+    {:ok, state}
   end
 
   def handle_info(
@@ -59,7 +52,9 @@ defmodule Naive.Trader do
         "GTC"
       )
 
-    {:noreply, %{state | buy_order: order}}
+    new_state = %{state | buy_order: order}
+    Naive.Leader.notify(:trader_state_updated, new_state)
+    {:noreply, new_state}
   end
 
   def handle_info(
@@ -95,7 +90,9 @@ defmodule Naive.Trader do
         "GTC"
       )
 
-    {:noreply, %{state | sell_order: order}}
+    new_state = %{state | sell_order: order}
+    Naive.Leader.notify(:trader_state_updated, new_state)
+    {:noreply, new_state}
   end
 
   def handle_info(
@@ -145,15 +142,5 @@ defmodule Naive.Trader do
         tick_size
       )
     )
-  end
-
-  defp fetch_tick_size(symbol) do
-    @binance_client.get_exchange_info()
-    |> elem(1)
-    |> Map.get(:symbols)
-    |> Enum.find(&(&1["symbol"] == symbol))
-    |> Map.get("filters")
-    |> Enum.find(&(&1["filterType"] == "PRICE_FILTER"))
-    |> Map.get("tickSize")
   end
 end
