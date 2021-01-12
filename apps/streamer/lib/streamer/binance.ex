@@ -43,6 +43,10 @@ defmodule Streamer.Binance do
         "#{trade_event.symbol}@#{trade_event.price}"
     )
 
-    Naive.send_event(trade_event)
+    Phoenix.PubSub.broadcast(
+      Streamer.PubSub,
+      "trade_events:#{trade_event.symbol}",
+      trade_event
+    )
   end
 end

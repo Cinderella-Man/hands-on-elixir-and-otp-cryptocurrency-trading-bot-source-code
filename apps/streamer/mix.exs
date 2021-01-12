@@ -26,8 +26,9 @@ defmodule Streamer.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:websockex, "~> 0.4.2"},
-      {:jason, "~> 1.2"}
+      {:jason, "~> 1.2"},
+      {:phoenix_pubsub, "~> 2.0"},
+      {:websockex, "~> 0.4.2"}
     ]
   end
 end
