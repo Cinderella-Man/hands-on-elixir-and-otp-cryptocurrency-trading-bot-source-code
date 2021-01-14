@@ -24,7 +24,7 @@ defmodule Naive.Trader do
   def init(%{symbol: symbol, profit_interval: profit_interval}) do
     symbol = String.upcase(symbol)
 
-    Logger.info("Initializing new trader for symbol(#{symbol})")
+    Logger.info("Initializing new trader for #{symbol}")
 
     Phoenix.PubSub.subscribe(
       Streamer.PubSub,
@@ -45,17 +45,12 @@ defmodule Naive.Trader do
         %TradeEvent{price: price},
         %State{symbol: symbol, buy_order: nil} = state
       ) do
-    Logger.info("Placing buy order (#{symbol}@#{price})")
-
     quantity = 100
 
+    Logger.info("Placing BUY order for #{symbol} @ #{price}, quantity: #{quantity}")
+
     {:ok, %Binance.OrderResponse{} = order} =
-      Binance.order_limit_buy(
-        symbol,
-        quantity,
-        price,
-        "GTC"
-      )
+      Binance.order_limit_buy(symbol, quantity, price, "GTC")
 
     {:noreply, %{state | buy_order: order}}
   end
@@ -76,22 +71,15 @@ defmodule Naive.Trader do
           tick_size: tick_size
         } = state
       ) do
-    sell_price =
-      calculate_sell_price(
-        buy_price,
-        profit_interval,
-        tick_size
-      )
+    sell_price = calculate_sell_price(buy_price, profit_interval, tick_size)
 
-    Logger.info("Buy order filled, placing sell order (#{symbol}@#{sell_price})")
+    Logger.info(
+      "Buy order filled, placing SELL order for " <>
+        "#{symbol} @ #{sell_price}), quantity: #{quantity}"
+    )
 
     {:ok, %Binance.OrderResponse{} = order} =
-      Binance.order_limit_sell(
-        symbol,
-        quantity,
-        sell_price,
-        "GTC"
-      )
+      Binance.order_limit_sell(symbol, quantity, sell_price, "GTC")
 
     {:noreply, %{state | sell_order: order}}
   end
@@ -116,11 +104,7 @@ defmodule Naive.Trader do
     {:noreply, state}
   end
 
-  defp calculate_sell_price(
-         buy_price,
-         profit_interval,
-         tick_size
-       ) do
+  defp calculate_sell_price(buy_price, profit_interval, tick_size) do
     fee = D.new("1.001")
     original_price = D.mult(D.new(buy_price), fee)
     tick_size = D.new(tick_size)
@@ -131,11 +115,7 @@ defmodule Naive.Trader do
         D.add("1.0", D.from_float(profit_interval))
       )
 
-    gross_target_price =
-      D.mult(
-        net_target_price,
-        fee
-      )
+    gross_target_price = D.mult(net_target_price, fee)
 
     D.to_float(
       D.mult(
