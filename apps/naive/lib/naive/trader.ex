@@ -167,9 +167,9 @@ defmodule Naive.Trader do
          buy_down_interval,
          tick_size
        ) do
-    current_price = D.cast(price)
-    interval = D.cast(buy_down_interval)
-    tick = D.cast(tick_size)
+    current_price = D.new(price)
+    interval = D.from_float(buy_down_interval)
+    tick = D.new(tick_size)
 
     # not necessarily legal price
     exact_buy_price =
