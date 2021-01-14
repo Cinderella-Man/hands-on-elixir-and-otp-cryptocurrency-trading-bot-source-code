@@ -47,10 +47,11 @@ defmodule Naive.Leader do
 
     trader_state = %Trader.State{
       symbol: symbol,
-      budget: D.div(
+      budget:
+        D.div(
           D.new(settings.budget),
           D.new(settings.chunks)
-      ),
+        ),
       buy_down_interval: settings.buy_down_interval,
       profit_interval: settings.profit_interval,
       tick_size: settings.tick_size,
@@ -132,13 +133,16 @@ defmodule Naive.Leader do
   defp fetch_symbol_settings(symbol) do
     symbol_filters = fetch_symbol_filters(symbol)
 
-    Map.merge(%{
-      chunks: 1,
-      budget: 20,
-      buy_down_interval: 0.0001,
-      # -0.12% for quick testing
-      profit_interval: -0.0012
-    }, symbol_filters)
+    Map.merge(
+      %{
+        chunks: 1,
+        budget: 20,
+        buy_down_interval: 0.0001,
+        # -0.12% for quick testing
+        profit_interval: -0.0012
+      },
+      symbol_filters
+    )
   end
 
   defp fetch_symbol_filters(symbol) do
