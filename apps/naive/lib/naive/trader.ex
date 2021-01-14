@@ -70,7 +70,7 @@ defmodule Naive.Trader do
 
     Logger.info(
       "Buy order filled, placing SELL order for " <>
-        "#{symbol} @ #{sell_price}), quantity: #{quantity}"
+        "#{symbol} @ #{sell_price}, quantity: #{quantity}"
     )
 
     {:ok, %Binance.OrderResponse{} = order} =
