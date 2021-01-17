@@ -83,7 +83,6 @@ defmodule Naive.Trader do
           sell_order: %Binance.OrderResponse{}
         } = state
       ) do
-    IO.inspect("FILLED camed aroud 2nd time")
     {:noreply, state}
   end
 
