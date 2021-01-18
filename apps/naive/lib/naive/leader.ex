@@ -87,7 +87,6 @@ defmodule Naive.Leader do
 
       index ->
         new_trader_data = start_new_trader(fresh_trader_state(settings))
-
         new_traders = List.replace_at(traders, index, new_trader_data)
 
         {:noreply, %{state | traders: new_traders}}
@@ -119,11 +118,7 @@ defmodule Naive.Leader do
   end
 
   defp fresh_trader_state(settings) do
-    %Trader.State{
-      symbol: settings.symbol,
-      profit_interval: settings.profit_interval,
-      tick_size: settings.tick_size
-    }
+    struct(Trader.State, settings)
   end
 
   defp fetch_symbol_settings(symbol) do
