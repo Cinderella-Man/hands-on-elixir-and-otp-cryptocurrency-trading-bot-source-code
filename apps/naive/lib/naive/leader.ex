@@ -34,21 +34,16 @@ defmodule Naive.Leader do
      }, {:continue, :start_traders}}
   end
 
-  def notify(:trader_state_updated, state) do
+  def notify(:trader_state_updated, trader_state) do
     GenServer.call(
-      :"#{__MODULE__}-#{state.symbol}",
-      {:update_trader_state, state}
+      :"#{__MODULE__}-#{trader_state.symbol}",
+      {:update_trader_state, trader_state}
     )
   end
 
   def handle_continue(:start_traders, %{symbol: symbol} = state) do
     settings = fetch_symbol_settings(symbol)
-
-    trader_state = %Trader.State{
-      symbol: symbol,
-      profit_interval: settings.profit_interval,
-      tick_size: settings.tick_size
-    }
+    trader_state = fresh_trader_state(settings)
 
     traders =
       for _i <- 1..settings.chunks,
@@ -77,24 +72,21 @@ defmodule Naive.Leader do
 
   def handle_info(
         {:DOWN, _ref, :process, trader_pid, :normal},
-        %{traders: traders} = state
+        %{traders: traders, symbol: symbol, settings: settings} = state
       ) do
-    Logger.info("Trader finished - restarting")
+    Logger.info("#{symbol} trader finished trade - restarting")
 
     case Enum.find_index(traders, &(&1.pid == trader_pid)) do
       nil ->
-        Logger.warn("Tried to remove finished trader that leader is not aware of")
+        Logger.warn(
+          "Tried to restart finished #{symbol} " <>
+            "trader that leader is not aware of"
+        )
+
         {:noreply, state}
 
       index ->
-        trader_data = Enum.at(traders, index)
-
-        new_trader_data =
-          start_new_trader(%{
-            trader_data.state
-            | buy_order: nil,
-              sell_order: nil
-          })
+        new_trader_data = start_new_trader(fresh_trader_state(settings))
 
         new_traders = List.replace_at(traders, index, new_trader_data)
 
@@ -104,13 +96,17 @@ defmodule Naive.Leader do
 
   def handle_info(
         {:DOWN, _ref, :process, trader_pid, _reason},
-        %{traders: traders} = state
+        %{traders: traders, symbol: symbol} = state
       ) do
-    Logger.error("Trader died - trying to restart")
+    Logger.error("#{symbol} trader died - trying to restart")
 
     case Enum.find_index(traders, &(&1.pid == trader_pid)) do
       nil ->
-        Logger.warn("Tried to restart trader but failed to find its cached state")
+        Logger.warn(
+          "Tried to restart #{symbol} trader " <>
+            "but failed to find its cached state"
+        )
+
         {:noreply, state}
 
       index ->
@@ -122,10 +118,19 @@ defmodule Naive.Leader do
     end
   end
 
+  defp fresh_trader_state(settings) do
+    %Trader.State{
+      symbol: settings.symbol,
+      profit_interval: settings.profit_interval,
+      tick_size: settings.tick_size
+    }
+  end
+
   defp fetch_symbol_settings(symbol) do
     tick_size = fetch_tick_size(symbol)
 
     %{
+      symbol: symbol,
       chunks: 1,
       # -0.12% for quick testing
       profit_interval: -0.0012,
