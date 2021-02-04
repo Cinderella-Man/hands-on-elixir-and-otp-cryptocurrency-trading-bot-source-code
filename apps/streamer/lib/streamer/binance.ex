@@ -6,12 +6,13 @@ defmodule Streamer.Binance do
   @stream_endpoint "wss://stream.binance.com:9443/ws/"
 
   def start_link(symbol) do
-    symbol = String.downcase(symbol)
+    lowercased_symbol = String.downcase(symbol)
 
     WebSockex.start_link(
-      "#{@stream_endpoint}#{symbol}@trade",
+      "#{@stream_endpoint}#{lowercased_symbol}@trade",
       __MODULE__,
-      nil
+      nil,
+      name: :"#{__MODULE__}-#{symbol}"
     )
   end
 
