@@ -214,7 +214,7 @@ defmodule Naive.Trader do
     net_target_price =
       D.mult(
         original_price,
-        D.add("1.0", D.from_float(profit_interval))
+        D.add("1.0", profit_interval)
       )
 
     gross_target_price = D.mult(net_target_price, fee)
@@ -227,9 +227,8 @@ defmodule Naive.Trader do
     )
   end
 
-  defp calculate_buy_price(price, buy_down_interval, tick_size) do
+  defp calculate_buy_price(price, interval, tick_size) do
     current_price = D.new(price)
-    interval = D.from_float(buy_down_interval)
     tick = D.new(tick_size)
 
     # not necessarily legal price
@@ -269,7 +268,7 @@ defmodule Naive.Trader do
     rebuy_price =
       D.sub(
         buy_price,
-        D.mult(buy_price, D.from_float(rebuy_interval))
+        D.mult(buy_price, rebuy_interval)
       )
 
     D.lt?(current_price, rebuy_price)

@@ -2,13 +2,9 @@ defmodule Naive do
   @moduledoc """
   Documentation for `Naive`.
   """
-  def start_trading(symbol) do
-    symbol = String.upcase(symbol)
+  alias Naive.DynamicSymbolSupervisor
 
-    {:ok, _pid} =
-      DynamicSupervisor.start_child(
-        Naive.DynamicSymbolSupervisor,
-        {Naive.SymbolSupervisor, symbol}
-      )
-  end
+  defdelegate start_trading(symbol), to: DynamicSymbolSupervisor
+  defdelegate stop_trading(symbol), to: DynamicSymbolSupervisor
+  defdelegate shutdown_trading(symbol), to: DynamicSymbolSupervisor
 end
