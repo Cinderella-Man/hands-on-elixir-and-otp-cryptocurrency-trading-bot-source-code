@@ -198,11 +198,7 @@ defmodule Naive.Leader do
     %{
       struct(Trader.State, settings)
       | id: :os.system_time(:millisecond),
-        budget:
-          D.div(
-            D.new(settings.budget),
-            D.new(settings.chunks)
-          ),
+        budget: D.div(settings.budget, settings.chunks),
         rebuy_notified: false
     }
   end
@@ -229,11 +225,13 @@ defmodule Naive.Leader do
       symbol_filters
       |> Enum.find(&(&1["filterType"] == "PRICE_FILTER"))
       |> Map.get("tickSize")
+      |> Decimal.new()
 
     step_size =
       symbol_filters
       |> Enum.find(&(&1["filterType"] == "LOT_SIZE"))
       |> Map.get("stepSize")
+      |> Decimal.new()
 
     %{
       tick_size: tick_size,
