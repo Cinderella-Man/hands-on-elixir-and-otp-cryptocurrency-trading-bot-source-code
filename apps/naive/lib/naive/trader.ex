@@ -102,12 +102,11 @@ defmodule Naive.Trader do
   defp calculate_sell_price(buy_price, profit_interval, tick_size) do
     fee = D.new("1.001")
     original_price = D.mult(D.new(buy_price), fee)
-    tick_size = D.new(tick_size)
 
     net_target_price =
       D.mult(
         original_price,
-        D.add("1.0", D.from_float(profit_interval))
+        D.add("1.0", profit_interval)
       )
 
     gross_target_price = D.mult(net_target_price, fee)
@@ -128,5 +127,6 @@ defmodule Naive.Trader do
     |> Map.get("filters")
     |> Enum.find(&(&1["filterType"] == "PRICE_FILTER"))
     |> Map.get("tickSize")
+    |> Decimal.new()
   end
 end
