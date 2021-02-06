@@ -5,7 +5,6 @@ defmodule Streamer.DynamicStreamerSupervisor do
 
   import Ecto.Query, only: [from: 2]
 
-  alias Decimal
   alias Streamer.Repo
   alias Streamer.Schema.Settings
 
