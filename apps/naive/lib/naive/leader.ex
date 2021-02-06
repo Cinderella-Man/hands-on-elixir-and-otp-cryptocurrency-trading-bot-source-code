@@ -152,7 +152,7 @@ defmodule Naive.Leader do
         new_traders =
           if settings.status == "shutdown" do
             Logger.warn(
-              "The leader won't start a new trader on #{symbol}" <>
+              "The leader won't start a new trader on #{symbol} " <>
                 "as symbol is in shutdown state"
             )
 
