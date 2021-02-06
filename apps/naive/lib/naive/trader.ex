@@ -119,12 +119,11 @@ defmodule Naive.Trader do
   defp calculate_sell_price(buy_price, profit_interval, tick_size) do
     fee = D.new("1.001")
     original_price = D.mult(D.new(buy_price), fee)
-    tick_size = D.new(tick_size)
 
     net_target_price =
       D.mult(
         original_price,
-        D.add("1.0", D.from_float(profit_interval))
+        D.add("1.0", profit_interval)
       )
 
     gross_target_price = D.mult(net_target_price, fee)
@@ -139,20 +138,18 @@ defmodule Naive.Trader do
 
   defp calculate_buy_price(price, buy_down_interval, tick_size) do
     current_price = D.new(price)
-    interval = D.from_float(buy_down_interval)
-    tick = D.new(tick_size)
 
     # not necessarily legal price
     exact_buy_price =
       D.sub(
         current_price,
-        D.mult(current_price, interval)
+        D.mult(current_price, buy_down_interval)
       )
 
     D.to_float(
       D.mult(
-        D.div_int(exact_buy_price, tick),
-        tick
+        D.div_int(exact_buy_price, tick_size),
+        tick_size
       )
     )
   end

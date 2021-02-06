@@ -127,9 +127,9 @@ defmodule Naive.Leader do
     %{
       symbol: symbol,
       chunks: 1,
-      buy_down_interval: 0.0001,
+      buy_down_interval: Decimal.new("0.0001"),
       # -0.12% for quick testing
-      profit_interval: -0.0012,
+      profit_interval: Decimal.new("-0.0012"),
       tick_size: tick_size
     }
   end
@@ -142,6 +142,7 @@ defmodule Naive.Leader do
     |> Map.get("filters")
     |> Enum.find(&(&1["filterType"] == "PRICE_FILTER"))
     |> Map.get("tickSize")
+    |> Decimal.new()
   end
 
   defp start_new_trader(%Trader.State{} = state) do
