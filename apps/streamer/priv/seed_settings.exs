@@ -4,7 +4,7 @@ alias Decimal
 alias Streamer.Repo
 alias Streamer.Schema.Settings
 
-Logger.info("Fetching exchange info from Binance to create trading settings")
+Logger.info("Fetching exchange info from Binance to create streaming settings")
 
 {:ok, %{symbols: symbols}} = Binance.get_exchange_info()
 
