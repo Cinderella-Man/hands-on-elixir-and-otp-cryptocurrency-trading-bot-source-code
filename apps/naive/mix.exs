@@ -28,6 +28,7 @@ defmodule Naive.MixProject do
     [
       {:binance, "~> 0.7.1"},
       {:binance_mock, in_umbrella: true},
+      {:core, in_umbrella: true},
       {:decimal, "~> 2.0"},
       {:ecto_sql, "~> 3.0"},
       {:ecto_enum, "~> 1.4"},

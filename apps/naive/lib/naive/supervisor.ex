@@ -10,7 +10,7 @@ defmodule Naive.Supervisor do
       {Naive.DynamicSymbolSupervisor, []},
       {Task,
        fn ->
-         Naive.DynamicSymbolSupervisor.autostart_trading()
+         Naive.DynamicSymbolSupervisor.autostart_workers()
        end}
     ]
 
