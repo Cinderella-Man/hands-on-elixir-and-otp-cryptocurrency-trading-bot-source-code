@@ -24,9 +24,10 @@ defmodule DataWarehouse.Subscriber.Worker do
       topic
     )
 
-    {:ok, %State{
-        topic: topic
-    }}
+    {:ok,
+     %State{
+       topic: topic
+     }}
   end
 
   def handle_info(%Streamer.Binance.TradeEvent{} = trade_event, state) do
@@ -50,7 +51,7 @@ defmodule DataWarehouse.Subscriber.Worker do
       original_quantity: order.orig_qty,
       executed_quantity: order.executed_qty,
       cummulative_quote_quantity: order.cummulative_quote_qty,
-      iceberg_quantity: order.iceberg_qty,
+      iceberg_quantity: order.iceberg_qty
     })
     |> DataWarehouse.Repo.insert(
       on_conflict: :replace_all,
