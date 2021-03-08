@@ -12,7 +12,7 @@ defmodule DataWarehouse.Subscriber.Worker do
     GenServer.start_link(
       __MODULE__,
       topic,
-      name: :"#{__MODULE__}-#{topic}"
+      name: via_tuple(topic)
     )
   end
 
@@ -59,5 +59,9 @@ defmodule DataWarehouse.Subscriber.Worker do
     )
 
     {:noreply, state}
+  end
+
+  defp via_tuple(topic) do
+    {:via, Registry, {:subscriber_workers, topic}}
   end
 end
