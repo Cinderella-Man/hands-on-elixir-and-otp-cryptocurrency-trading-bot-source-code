@@ -4,7 +4,7 @@ defmodule DataWarehouse.Subscriber.DynamicSupervisor do
   require Logger
 
   alias DataWarehouse.Repo
-  alias DataWarehouse.Schema.Settings
+  alias DataWarehouse.Schema.SubscriberSettings
   alias DataWarehouse.Subscriber.Worker
 
   import Ecto.Query, only: [from: 2]
@@ -21,7 +21,7 @@ defmodule DataWarehouse.Subscriber.DynamicSupervisor do
 
   def autostart_workers() do
     Repo.all(
-      from(s in Settings,
+      from(s in SubscriberSettings,
         where: s.status == "on",
         select: s.topic
       )
@@ -43,7 +43,7 @@ defmodule DataWarehouse.Subscriber.DynamicSupervisor do
 
   defp update_status(topic, status)
        when is_binary(topic) and is_binary(status) do
-    %Settings{
+    %SubscriberSettings{
       topic: topic,
       status: status
     }

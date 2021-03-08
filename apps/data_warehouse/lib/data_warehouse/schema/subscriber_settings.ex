@@ -1,11 +1,11 @@
-defmodule DataWarehouse.Schema.Settings do
+defmodule DataWarehouse.Schema.SubscriberSettings do
   use Ecto.Schema
 
   alias DataWarehouse.Schema.SubscriberStatusEnum
 
   @primary_key {:id, :binary_id, autogenerate: true}
 
-  schema "settings" do
+  schema "subscriber_settings" do
     field(:topic, :string)
     field(:status, SubscriberStatusEnum)
 
