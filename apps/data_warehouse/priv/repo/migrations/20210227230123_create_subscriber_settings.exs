@@ -1,4 +1,4 @@
-defmodule DataWarehouse.Repo.Migrations.CreateSettings do
+defmodule DataWarehouse.Repo.Migrations.CreateSubscriberSettings do
   use Ecto.Migration
 
   alias DataWarehouse.Schema.SubscriberStatusEnum
