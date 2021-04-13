@@ -28,7 +28,7 @@ defmodule Naive.Trader do
 
     Phoenix.PubSub.subscribe(
       Streamer.PubSub,
-      "trade_events:#{symbol}"
+      "TRADE_EVENTS:#{symbol}"
     )
 
     tick_size = fetch_tick_size(symbol)
