@@ -46,7 +46,7 @@ defmodule Naive.Trader do
 
     Phoenix.PubSub.subscribe(
       Streamer.PubSub,
-      "trade_events:#{symbol}"
+      "TRADE_EVENTS:#{symbol}"
     )
 
     {:ok, state}
