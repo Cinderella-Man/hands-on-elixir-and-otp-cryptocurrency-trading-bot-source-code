@@ -45,7 +45,7 @@ defmodule Streamer.Binance do
 
     Phoenix.PubSub.broadcast(
       Streamer.PubSub,
-      "trade_events:#{trade_event.symbol}",
+      "TRADE_EVENTS:#{trade_event.symbol}",
       trade_event
     )
   end
