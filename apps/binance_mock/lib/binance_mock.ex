@@ -270,8 +270,6 @@ defmodule BinanceMock do
   end
 
   defp broadcast_trade_event(%Streamer.Binance.TradeEvent{} = trade_event) do
-    symbol = String.upcase(trade_event.symbol)
-
     Phoenix.PubSub.broadcast(
       Streamer.PubSub,
       "TRADE_EVENTS:#{symbol}",
