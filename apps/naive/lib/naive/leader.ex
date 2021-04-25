@@ -88,20 +88,20 @@ defmodule Naive.Leader do
         {:reply, :ok, state}
 
       index ->
-        traders =
-          if settings.chunks == length(traders) do
-            Logger.info("All traders already started for #{symbol}")
-            traders
-          else
-            Logger.info("Starting new trader for #{symbol}")
-            [start_new_trader(fresh_trader_state(settings)) | traders]
-          end
-
         old_trader_data = Enum.at(traders, index)
         new_trader_data = %{old_trader_data | :state => new_trader_state}
-        new_traders = List.replace_at(traders, index, new_trader_data)
+        updated_traders = List.replace_at(traders, index, new_trader_data)
 
-        {:reply, :ok, %{state | :traders => new_traders}}
+        updated_traders =
+          if settings.chunks == length(traders) do
+            Logger.info("All traders already started for #{symbol}")
+            updated_traders
+          else
+            Logger.info("Starting new trader for #{symbol}")
+            [start_new_trader(fresh_trader_state(settings)) | updated_traders]
+          end
+
+        {:reply, :ok, %{state | :traders => updated_traders}}
     end
   end
 
