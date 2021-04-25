@@ -22,8 +22,6 @@ defmodule Streamer.DynamicStreamerSupervisor do
   end
 
   def start_streaming(symbol) when is_binary(symbol) do
-    symbol = String.upcase(symbol)
-
     case get_pid(symbol) do
       nil ->
         Logger.info("Starting streaming on #{symbol}")
@@ -38,8 +36,6 @@ defmodule Streamer.DynamicStreamerSupervisor do
   end
 
   def stop_streaming(symbol) when is_binary(symbol) do
-    symbol = String.upcase(symbol)
-
     case get_pid(symbol) do
       nil ->
         Logger.warn("Streaming on #{symbol} already stopped")

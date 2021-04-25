@@ -4,6 +4,15 @@ defmodule Streamer do
   """
   alias Streamer.DynamicStreamerSupervisor
 
-  defdelegate start_streaming(symbol), to: DynamicStreamerSupervisor
-  defdelegate stop_streaming(symbol), to: DynamicStreamerSupervisor
+  def start_streaming(symbol) do
+    symbol
+    |> String.upcase()
+    |> DynamicStreamerSupervisor.start_streaming()
+  end
+
+  def stop_streaming(symbol) do
+    symbol
+    |> String.upcase()
+    |> DynamicStreamerSupervisor.stop_streaming()
+  end
 end
