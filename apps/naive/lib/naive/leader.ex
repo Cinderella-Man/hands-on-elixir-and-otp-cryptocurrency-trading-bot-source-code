@@ -95,10 +95,14 @@ defmodule Naive.Leader do
         {:reply, :ok, state}
 
       index ->
-        traders =
+        old_trader_data = Enum.at(traders, index)
+        new_trader_data = %{old_trader_data | :state => new_trader_state}
+        updated_traders = List.replace_at(traders, index, new_trader_data)
+
+        updated_traders =
           if settings.chunks == length(traders) do
             Logger.info("All traders already started for #{symbol}")
-            traders
+            updated_traders
           else
             if settings.status == "shutdown" do
               Logger.warn(
@@ -106,18 +110,14 @@ defmodule Naive.Leader do
                   "as symbol is in the 'shutdown' state"
               )
 
-              traders
+              updated_traders
             else
               Logger.info("Starting new trader for #{symbol}")
-              [start_new_trader(fresh_trader_state(settings)) | traders]
+              [start_new_trader(fresh_trader_state(settings)) | updated_traders]
             end
           end
 
-        old_trader_data = Enum.at(traders, index)
-        new_trader_data = %{old_trader_data | :state => new_trader_state}
-        new_traders = List.replace_at(traders, index, new_trader_data)
-
-        {:reply, :ok, %{state | :traders => new_traders}}
+        {:reply, :ok, %{state | :traders => updated_traders}}
     end
   end
 
