@@ -16,6 +16,8 @@ defmodule DataWarehouse.Publisher do
         to: to,
         interval: interval
       }) do
+    symbol = String.upcase(symbol)
+
     from_ts =
       "#{from}T00:00:00.000Z"
       |> convert_to_ms()
