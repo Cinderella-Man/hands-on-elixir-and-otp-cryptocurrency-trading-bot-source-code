@@ -19,7 +19,7 @@ defmodule DataWarehouse.Subscriber.DynamicSupervisor do
     DynamicSupervisor.init(strategy: :one_for_one)
   end
 
-  def autostart_workers() do
+  def autostart_workers do
     Repo.all(
       from(s in SubscriberSettings,
         where: s.status == "on",
