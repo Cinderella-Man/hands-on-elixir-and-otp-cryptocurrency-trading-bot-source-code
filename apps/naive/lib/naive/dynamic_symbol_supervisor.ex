@@ -16,7 +16,7 @@ defmodule Naive.DynamicSymbolSupervisor do
     DynamicSupervisor.init(strategy: :one_for_one)
   end
 
-  def autostart_trading() do
+  def autostart_trading do
     fetch_symbols_to_trade()
     |> Enum.map(&start_trading/1)
   end
@@ -92,7 +92,7 @@ defmodule Naive.DynamicSymbolSupervisor do
     )
   end
 
-  defp fetch_symbols_to_trade() do
+  defp fetch_symbols_to_trade do
     Repo.all(
       from(s in Settings,
         where: s.status == "on",
