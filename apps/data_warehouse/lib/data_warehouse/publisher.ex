@@ -44,7 +44,7 @@ defmodule DataWarehouse.Publisher do
             Logger.info("Publisher broadcasted #{index} events")
           end
 
-          publishTradeEvent(row)
+          publish_trade_event(row)
         end)
       end,
       timeout: :infinity
@@ -53,7 +53,7 @@ defmodule DataWarehouse.Publisher do
     Logger.info("Publisher finished streaming trade events")
   end
 
-  defp publishTradeEvent(%DataWarehouse.Schema.TradeEvent{} = trade_event) do
+  defp publish_trade_event(%DataWarehouse.Schema.TradeEvent{} = trade_event) do
     new_trade_event =
       struct(
         Streamer.Binance.TradeEvent,
