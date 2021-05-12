@@ -6,7 +6,7 @@ defmodule Naive.Trader do
 
   require Logger
 
-  @binance_client Application.get_env(:naive, :binance_client)
+  @binance_client Application.compile_env(:naive, :binance_client)
 
   defmodule State do
     @enforce_keys [:symbol, :profit_interval, :tick_size]
