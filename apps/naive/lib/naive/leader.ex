@@ -6,7 +6,7 @@ defmodule Naive.Leader do
 
   require Logger
 
-  @binance_client Application.get_env(:naive, :binance_client)
+  @binance_client Application.compile_env(:naive, :binance_client)
 
   defmodule State do
     defstruct symbol: nil,

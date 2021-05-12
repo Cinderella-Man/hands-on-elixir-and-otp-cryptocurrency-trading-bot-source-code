@@ -21,7 +21,7 @@ defmodule BinanceMock do
     {:ok, %State{}}
   end
 
-  def get_exchange_info() do
+  def get_exchange_info do
     Binance.get_exchange_info()
   end
 
@@ -116,7 +116,7 @@ defmodule BinanceMock do
 
     (filled_buy_orders ++ filled_sell_orders)
     |> Enum.map(&convert_order_to_event(&1, trade_event.event_time))
-    |> Enum.map(&broadcast_trade_event/1)
+    |> Enum.each(&broadcast_trade_event/1)
 
     remaining_buy_orders =
       order_book.buy_side
