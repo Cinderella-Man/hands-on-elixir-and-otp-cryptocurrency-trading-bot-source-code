@@ -16,7 +16,7 @@ defmodule Streamer.DynamicStreamerSupervisor do
     DynamicSupervisor.init(strategy: :one_for_one)
   end
 
-  def autostart_streaming() do
+  def autostart_streaming do
     fetch_symbols_to_stream()
     |> Enum.map(&start_streaming/1)
   end
@@ -72,7 +72,7 @@ defmodule Streamer.DynamicStreamerSupervisor do
     )
   end
 
-  defp fetch_symbols_to_stream() do
+  defp fetch_symbols_to_stream do
     Repo.all(
       from(s in Settings,
         where: s.status == "on",
