@@ -1,17 +1,21 @@
 defmodule Streamer.Supervisor do
   use Supervisor
 
+  alias Streamer.DynamicStreamerSupervisor
+
+  @registry :binance_streamers
+
   def start_link(init_arg) do
     Supervisor.start_link(__MODULE__, init_arg, name: __MODULE__)
   end
 
-  @impl true
   def init(_init_arg) do
     children = [
-      {Streamer.DynamicStreamerSupervisor, []},
+      {Registry, [keys: :unique, name: @registry]},
+      {DynamicStreamerSupervisor, []},
       {Task,
        fn ->
-         Streamer.DynamicStreamerSupervisor.autostart_workers()
+         DynamicStreamerSupervisor.autostart_workers()
        end}
     ]
 
