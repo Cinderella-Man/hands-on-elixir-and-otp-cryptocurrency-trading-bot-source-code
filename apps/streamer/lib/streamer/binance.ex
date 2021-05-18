@@ -6,13 +6,16 @@ defmodule Streamer.Binance do
   @stream_endpoint "wss://stream.binance.com:9443/ws/"
 
   def start_link(symbol) do
-    lowercased_symbol = String.downcase(symbol)
+    Logger.info(
+      "Binance streamer is connecting to websocket " <>
+        "stream for #{symbol} trade events"
+    )
 
     WebSockex.start_link(
-      "#{@stream_endpoint}#{lowercased_symbol}@trade",
+      "#{@stream_endpoint}#{String.downcase(symbol)}@trade",
       __MODULE__,
       nil,
-      name: :"#{__MODULE__}-#{symbol}"
+      name: via_tuple(symbol)
     )
   end
 
@@ -49,5 +52,9 @@ defmodule Streamer.Binance do
       "TRADE_EVENTS:#{trade_event.symbol}",
       trade_event
     )
+  end
+
+  defp via_tuple(symbol) do
+    {:via, Registry, {:binance_streamers, symbol}}
   end
 end
