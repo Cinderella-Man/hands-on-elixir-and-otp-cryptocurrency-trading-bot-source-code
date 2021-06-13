@@ -10,8 +10,8 @@
 import Config
 
 config :binance,
-  api_key: "YOUR-API-KEY-HERE",
-  secret_key: "YOUR-SECRET-KEY-HERE"
+  api_key: System.get_env("BINANCE_API_KEY"),
+  secret_key: System.get_env("BINANCE_SECRET_KEY")
 
 config :logger,
   level: :info
