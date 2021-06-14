@@ -47,7 +47,7 @@ defmodule Naive.Trader do
         %TradeEvent{price: price},
         %State{symbol: symbol, buy_order: nil} = state
       ) do
-    quantity = 100
+    quantity = "100"
 
     Logger.info("Placing BUY order for #{symbol} @ #{price}, quantity: #{quantity}")
 
@@ -107,8 +107,8 @@ defmodule Naive.Trader do
   end
 
   defp calculate_sell_price(buy_price, profit_interval, tick_size) do
-    fee = D.new("1.001")
-    original_price = D.mult(D.new(buy_price), fee)
+    fee = "1.001"
+    original_price = D.mult(buy_price, fee)
 
     net_target_price =
       D.mult(
@@ -118,11 +118,12 @@ defmodule Naive.Trader do
 
     gross_target_price = D.mult(net_target_price, fee)
 
-    D.to_float(
+    D.to_string(
       D.mult(
         D.div_int(gross_target_price, tick_size),
         tick_size
-      )
+      ),
+      :normal
     )
   end
 
@@ -134,6 +135,5 @@ defmodule Naive.Trader do
     |> Map.get("filters")
     |> Enum.find(&(&1["filterType"] == "PRICE_FILTER"))
     |> Map.get("tickSize")
-    |> Decimal.new()
   end
 end
