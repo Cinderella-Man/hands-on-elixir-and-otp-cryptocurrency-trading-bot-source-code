@@ -45,7 +45,7 @@ defmodule Naive.Trader do
         %TradeEvent{price: price},
         %State{symbol: symbol, buy_order: nil} = state
       ) do
-    quantity = 100
+    quantity = "100"
 
     Logger.info("Placing BUY order for #{symbol} @ #{price}, quantity: #{quantity}")
 
