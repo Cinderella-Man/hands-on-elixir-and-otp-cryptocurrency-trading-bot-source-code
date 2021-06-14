@@ -111,11 +111,12 @@ defmodule Naive.Trader do
 
     gross_target_price = D.mult(net_target_price, fee)
 
-    D.to_float(
+    D.to_string(
       D.mult(
         D.div_int(gross_target_price, tick_size),
         tick_size
-      )
+      ),
+      :normal
     )
   end
 
@@ -127,6 +128,5 @@ defmodule Naive.Trader do
     |> Map.get("filters")
     |> Enum.find(&(&1["filterType"] == "PRICE_FILTER"))
     |> Map.get("tickSize")
-    |> Decimal.new()
   end
 end
