@@ -166,11 +166,12 @@ defmodule Naive.Leader do
       %{
         symbol: symbol,
         chunks: 5,
-        budget: Decimal.new("100"),
-        buy_down_interval: Decimal.new("0.0001"),
+        budget: 100,
+        # -0.01% for quick testing
+        buy_down_interval: "0.0001",
         # -0.12% for quick testing
-        profit_interval: Decimal.new("-0.0012"),
-        rebuy_interval: Decimal.new("0.001")
+        profit_interval: "-0.0012",
+        rebuy_interval: "0.001"
       },
       symbol_filters
     )
@@ -188,13 +189,11 @@ defmodule Naive.Leader do
       symbol_filters
       |> Enum.find(&(&1["filterType"] == "PRICE_FILTER"))
       |> Map.get("tickSize")
-      |> Decimal.new()
 
     step_size =
       symbol_filters
       |> Enum.find(&(&1["filterType"] == "LOT_SIZE"))
       |> Map.get("stepSize")
-      |> Decimal.new()
 
     %{
       tick_size: tick_size,
