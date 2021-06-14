@@ -26,7 +26,7 @@ defmodule Naive.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:binance, "~> 0.7.1"},
+      {:binance, "~> 1.0"},
       {:binance_mock, in_umbrella: true},
       {:decimal, "~> 2.0"},
       {:phoenix_pubsub, "~> 2.0"},
