@@ -1,6 +1,5 @@
 require Logger
 
-alias Decimal
 alias Streamer.Repo
 alias Streamer.Schema.Settings
 
