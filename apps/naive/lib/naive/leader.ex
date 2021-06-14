@@ -183,13 +183,11 @@ defmodule Naive.Leader do
       symbol_filters
       |> Enum.find(&(&1["filterType"] == "PRICE_FILTER"))
       |> Map.get("tickSize")
-      |> Decimal.new()
 
     step_size =
       symbol_filters
       |> Enum.find(&(&1["filterType"] == "LOT_SIZE"))
       |> Map.get("stepSize")
-      |> Decimal.new()
 
     %{
       tick_size: tick_size,
