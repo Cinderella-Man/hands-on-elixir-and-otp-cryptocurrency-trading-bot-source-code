@@ -24,10 +24,10 @@ timestamp = NaiveDateTime.utc_now()
 base_settings = %{
   symbol: "",
   chunks: chunks,
-  budget: Decimal.from_float(budget),
-  buy_down_interval: Decimal.from_float(buy_down_interval),
-  profit_interval: Decimal.from_float(profit_interval),
-  rebuy_interval: Decimal.from_float(rebuy_interval),
+  budget: Decimal.new(budget),
+  buy_down_interval: Decimal.new(buy_down_interval),
+  profit_interval: Decimal.new(profit_interval),
+  rebuy_interval: Decimal.new(rebuy_interval),
   status: "off",
   inserted_at: timestamp,
   updated_at: timestamp
