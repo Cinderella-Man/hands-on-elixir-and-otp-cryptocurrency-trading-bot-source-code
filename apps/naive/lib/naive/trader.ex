@@ -100,8 +100,8 @@ defmodule Naive.Trader do
   end
 
   defp calculate_sell_price(buy_price, profit_interval, tick_size) do
-    fee = D.new("1.001")
-    original_price = D.mult(D.new(buy_price), fee)
+    fee = "1.001"
+    original_price = D.mult(buy_price, fee)
 
     net_target_price =
       D.mult(
