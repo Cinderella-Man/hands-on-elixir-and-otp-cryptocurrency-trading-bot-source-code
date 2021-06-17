@@ -33,9 +33,9 @@ defmodule Naive.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:core, in_umbrella: true},
       {:binance, "~> 1.0"},
       {:binance_mock, in_umbrella: true},
+      {:core, in_umbrella: true},
       {:data_warehouse, in_umbrella: true, only: :test},
       {:decimal, "~> 2.0"},
       {:ecto_sql, "~> 3.0"},

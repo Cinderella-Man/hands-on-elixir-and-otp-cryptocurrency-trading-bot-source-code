@@ -34,6 +34,7 @@ defmodule Streamer.MixProject do
   defp deps do
     [
       {:binance_mock, in_umbrella: true},
+      {:core, in_umbrella: true},
       {:ecto_sql, "~> 3.0"},
       {:ecto_enum, "~> 1.4"},
       {:jason, "~> 1.2"},
