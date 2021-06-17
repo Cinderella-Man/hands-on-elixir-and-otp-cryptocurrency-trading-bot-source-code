@@ -56,12 +56,12 @@ defmodule DataWarehouse.Publisher do
   defp publish_trade_event(%DataWarehouse.Schema.TradeEvent{} = trade_event) do
     new_trade_event =
       struct(
-        Streamer.Binance.TradeEvent,
+        Core.Struct.TradeEvent,
         trade_event |> Map.to_list()
       )
 
     Phoenix.PubSub.broadcast(
-      Streamer.PubSub,
+      Core.PubSub,
       "TRADE_EVENTS:#{trade_event.symbol}",
       new_trade_event
     )

@@ -21,8 +21,11 @@ defmodule BinanceMock do
     {:ok, %State{}}
   end
 
-  def get_exchange_info do
-    Binance.get_exchange_info()
+  def get_exchange_info() do
+    case Application.get_env(:binance_mock, :use_cached_exchange_info) do
+      true -> get_cached_exchange_info()
+      _ -> Binance.get_exchange_info()
+    end
   end
 
   def order_limit_buy(symbol, quantity, price, "GTC") do
@@ -94,7 +97,7 @@ defmodule BinanceMock do
   end
 
   def handle_info(
-        %Streamer.Binance.TradeEvent{} = trade_event,
+        %Core.Struct.TradeEvent{} = trade_event,
         %{order_books: order_books} = state
       ) do
     order_book =
@@ -170,7 +173,7 @@ defmodule BinanceMock do
         Logger.debug("BinanceMock subscribing to #{stream_name}")
 
         Phoenix.PubSub.subscribe(
-          Streamer.PubSub,
+          Core.PubSub,
           stream_name
         )
 
@@ -252,7 +255,7 @@ defmodule BinanceMock do
   end
 
   defp convert_order_to_event(%Binance.Order{} = order, time) do
-    %Streamer.Binance.TradeEvent{
+    %Core.Struct.TradeEvent{
       event_type: order.type,
       event_time: time - 1,
       symbol: order.symbol,
@@ -266,11 +269,28 @@ defmodule BinanceMock do
     }
   end
 
-  defp broadcast_trade_event(%Streamer.Binance.TradeEvent{} = trade_event) do
+  defp broadcast_trade_event(%Core.Struct.TradeEvent{} = trade_event) do
     Phoenix.PubSub.broadcast(
-      Streamer.PubSub,
+      Core.PubSub,
       "TRADE_EVENTS:#{trade_event.symbol}",
       trade_event
     )
+  end
+
+  defp get_cached_exchange_info do
+    {:ok, data} =
+      File.cwd!()
+      |> Path.split()
+      |> Enum.drop(-1)
+      |> Kernel.++([
+        "binance_mock",
+        "test",
+        "assets",
+        "exchange_info.json"
+      ])
+      |> Path.join()
+      |> File.read()
+
+    {:ok, Jason.decode!(data) |> Binance.ExchangeInfo.new()}
   end
 end

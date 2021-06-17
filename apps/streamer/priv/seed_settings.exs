@@ -3,9 +3,11 @@ require Logger
 alias Streamer.Repo
 alias Streamer.Schema.Settings
 
+binance_client = Application.get_env(:streamer, :binance_client)
+
 Logger.info("Fetching exchange info from Binance to create streaming settings")
 
-{:ok, %{symbols: symbols}} = Binance.get_exchange_info()
+{:ok, %{symbols: symbols}} = binance_client.get_exchange_info()
 
 timestamp = NaiveDateTime.utc_now()
   |> NaiveDateTime.truncate(:second)

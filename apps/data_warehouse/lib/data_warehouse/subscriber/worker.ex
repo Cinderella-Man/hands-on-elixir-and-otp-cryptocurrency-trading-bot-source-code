@@ -20,7 +20,7 @@ defmodule DataWarehouse.Subscriber.Worker do
     Logger.info("DataWarehouse worker is subscribing to #{topic}")
 
     Phoenix.PubSub.subscribe(
-      Streamer.PubSub,
+      Core.PubSub,
       topic
     )
 
@@ -30,7 +30,7 @@ defmodule DataWarehouse.Subscriber.Worker do
      }}
   end
 
-  def handle_info(%Streamer.Binance.TradeEvent{} = trade_event, state) do
+  def handle_info(%Core.Struct.TradeEvent{} = trade_event, state) do
     opts =
       trade_event
       |> Map.from_struct()

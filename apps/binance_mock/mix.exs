@@ -26,10 +26,11 @@ defmodule BinanceMock.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
+      {:core, in_umbrella: true},
       {:binance, "~> 1.0"},
       {:decimal, "~> 2.0"},
-      {:phoenix_pubsub, "~> 2.0"},
-      {:streamer, in_umbrella: true}
+      {:jason, "~> 1.2"},
+      {:phoenix_pubsub, "~> 2.0"}
     ]
   end
 end

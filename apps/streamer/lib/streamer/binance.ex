@@ -29,7 +29,7 @@ defmodule Streamer.Binance do
   end
 
   defp process_event(%{"e" => "trade"} = event) do
-    trade_event = %Streamer.Binance.TradeEvent{
+    trade_event = %Core.Struct.TradeEvent{
       :event_type => event["e"],
       :event_time => event["E"],
       :symbol => event["s"],
@@ -48,7 +48,7 @@ defmodule Streamer.Binance do
     )
 
     Phoenix.PubSub.broadcast(
-      Streamer.PubSub,
+      Core.PubSub,
       "TRADE_EVENTS:#{trade_event.symbol}",
       trade_event
     )

@@ -1,15 +1,15 @@
-defmodule DataWarehouse.MixProject do
+defmodule Core.MixProject do
   use Mix.Project
 
   def project do
     [
-      app: :data_warehouse,
+      app: :core,
       version: "0.1.0",
       build_path: "../../_build",
       config_path: "../../config/config.exs",
       deps_path: "../../deps",
       lockfile: "../../mix.lock",
-      elixir: "~> 1.11",
+      elixir: "~> 1.12",
       start_permanent: Mix.env() == :prod,
       deps: deps()
     ]
@@ -19,18 +19,14 @@ defmodule DataWarehouse.MixProject do
   def application do
     [
       extra_applications: [:logger],
-      mod: {DataWarehouse.Application, []}
+      mod: {Core.Application, []}
     ]
   end
 
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:core, in_umbrella: true},
-      {:ecto_sql, "~> 3.0"},
-      {:ecto_enum, "~> 1.4"},
-      {:phoenix_pubsub, "~> 2.0"},
-      {:postgrex, ">= 0.0.0"}
+      {:phoenix_pubsub, "~> 2.0"}
     ]
   end
 end
