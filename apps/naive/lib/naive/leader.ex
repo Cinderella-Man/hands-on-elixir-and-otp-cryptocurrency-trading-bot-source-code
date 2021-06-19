@@ -129,10 +129,10 @@ defmodule Naive.Leader do
   end
 
   def handle_info(
-        {:DOWN, _ref, :process, trader_pid, _reason},
+        {:DOWN, _ref, :process, trader_pid, reason},
         %{traders: traders, symbol: symbol} = state
       ) do
-    Logger.error("#{symbol} trader died - trying to restart")
+    Logger.error("#{symbol} trader died - reason #{reason} - trying to restart")
 
     case Enum.find_index(traders, &(&1.pid == trader_pid)) do
       nil ->
