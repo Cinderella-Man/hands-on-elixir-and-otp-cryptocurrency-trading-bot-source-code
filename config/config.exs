@@ -9,9 +9,10 @@
 # move said applications out of the umbrella.
 import Config
 
-config :binance,
-  api_key: "YOUR-API-KEY-HERE",
-  secret_key: "YOUR-SECRET-KEY-HERE"
-
 config :logger,
   level: :info
+
+# Import secrets file with Binance keys if it exists
+if File.exists?('config/secrets.exs') do
+  import_config('secrets.exs')
+end
