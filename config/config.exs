@@ -53,9 +53,9 @@ config :naive, Naive.Repo,
 config :logger,
   level: :info
 
-import_config "#{config_env()}.exs"
-
 # Import secrets file with Binance keys if it exists
 if File.exists?("config/secrets.exs") do
   import_config("secrets.exs")
 end
+
+import_config "#{config_env()}.exs"
