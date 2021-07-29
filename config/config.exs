@@ -13,6 +13,7 @@ config :binance_mock,
   use_cached_exchange_info: false
 
 config :core,
+  logger: Logger,
   pubsub_client: Phoenix.PubSub
 
 config :data_warehouse,
