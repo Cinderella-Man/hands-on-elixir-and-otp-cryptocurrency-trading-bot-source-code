@@ -120,8 +120,8 @@ defmodule Naive.Leader do
 
   defp fresh_trader_state(settings) do
     %{
-      struct(Trader.State, settings) |
-      budget: D.div(settings.budget, settings.chunks)
+      struct(Trader.State, settings)
+      | budget: D.div(settings.budget, settings.chunks)
     }
   end
 
