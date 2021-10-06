@@ -18,26 +18,26 @@ defmodule BinanceMock do
   @type recv_window :: binary
 
   @callback order_limit_buy(
-    symbol,
-    quantity,
-    price,
-    time_in_force
-  ) :: {:ok, %OrderResponse{}} | {:error, term}
+              symbol,
+              quantity,
+              price,
+              time_in_force
+            ) :: {:ok, %OrderResponse{}} | {:error, term}
 
   @callback order_limit_sell(
-    symbol,
-    quantity,
-    price,
-    time_in_force
-  ) :: {:ok, %OrderResponse{}} | {:error, term}
+              symbol,
+              quantity,
+              price,
+              time_in_force
+            ) :: {:ok, %OrderResponse{}} | {:error, term}
 
   @callback get_order(
-    symbol,
-    timestamp,
-    order_id,
-    orig_client_order_id | nil,
-    recv_window | nil
-  ) :: {:ok, %Order{}} | {:error, term}
+              symbol,
+              timestamp,
+              order_id,
+              orig_client_order_id | nil,
+              recv_window | nil
+            ) :: {:ok, %Order{}} | {:error, term}
 
   defmodule State do
     defstruct order_books: %{}, subscriptions: [], fake_order_id: 1
@@ -78,10 +78,10 @@ defmodule BinanceMock do
   end
 
   def generate_fake_order(order_id, symbol, quantity, price, side)
-       when is_binary(symbol) and
-              is_binary(quantity) and
-              is_binary(price) and
-              (side == "BUY" or side == "SELL") do
+      when is_binary(symbol) and
+             is_binary(quantity) and
+             is_binary(price) and
+             (side == "BUY" or side == "SELL") do
     current_timestamp = :os.system_time(:millisecond)
     client_order_id = :crypto.hash(:md5, "#{order_id}") |> Base.encode16()
 

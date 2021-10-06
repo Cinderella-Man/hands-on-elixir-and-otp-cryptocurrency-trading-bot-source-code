@@ -10,30 +10,32 @@ defmodule Naive.TraderTest do
   @tag :unit
   test "Placing buy order test" do
     Test.PubSubMock
-    |> expect(:subscribe, fn (_module, "TRADE_EVENTS:XRPUSDT") -> :ok end)
-    |> expect(:broadcast, fn (_module, "ORDERS:XRPUSDT", _order) -> :ok end)
-
-    Test.LoggerMock
-    |> expect(:info, 2, fn (_message) -> :ok end)
+    |> expect(:subscribe, fn _module, "TRADE_EVENTS:XRPUSDT" -> :ok end)
+    |> expect(:broadcast, fn _module, "ORDERS:XRPUSDT", _order -> :ok end)
 
     Test.BinanceMock
-    |> expect(:order_limit_buy, fn ("XRPUSDT", "464.360", "0.4307", "GTC") ->
-      {:ok, BinanceMock.generate_fake_order(
-        "12345",
-        "XRPUSDT",
-        "464.360",
-        "0.4307",
-        "BUY"
-      )
-      |> BinanceMock.convert_order_to_order_response()}
+    |> expect(:order_limit_buy, fn "XRPUSDT", "464.360", "0.4307", "GTC" ->
+      {:ok,
+       BinanceMock.generate_fake_order(
+         "12345",
+         "XRPUSDT",
+         "464.360",
+         "0.4307",
+         "BUY"
+       )
+       |> BinanceMock.convert_order_to_order_response()}
     end)
 
     test_pid = self()
+
     Test.Naive.LeaderMock
-    |> expect(:notify, fn (:trader_state_updated, %Naive.Trader.State{}) ->
+    |> expect(:notify, fn :trader_state_updated, %Naive.Trader.State{} ->
       send(test_pid, :ok)
       :ok
     end)
+
+    Test.LoggerMock
+    |> expect(:info, 2, fn _message -> :ok end)
 
     trader_state = dummy_trader_state()
     trade_event = generate_event(1, "0.43183010", "213.10000000")

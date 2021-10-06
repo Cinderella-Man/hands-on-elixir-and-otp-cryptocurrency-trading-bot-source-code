@@ -1,5 +1,4 @@
 defmodule Core.Test do
-
   defmodule PubSub do
     @type t :: atom
     @type topic :: binary
