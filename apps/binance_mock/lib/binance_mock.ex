@@ -169,7 +169,7 @@ defmodule BinanceMock do
   end
 
   def handle_info(
-        %Core.Struct.TradeEvent{} = trade_event,
+        %TradeEvent{} = trade_event,
         %{order_books: order_books} = state
       ) do
     order_book =
@@ -289,7 +289,7 @@ defmodule BinanceMock do
   end
 
   defp convert_order_to_event(%Binance.Order{} = order, time) do
-    %Core.Struct.TradeEvent{
+    %TradeEvent{
       event_type: order.type,
       event_time: time - 1,
       symbol: order.symbol,
@@ -303,7 +303,7 @@ defmodule BinanceMock do
     }
   end
 
-  defp broadcast_trade_event(%Core.Struct.TradeEvent{} = trade_event) do
+  defp broadcast_trade_event(%TradeEvent{} = trade_event) do
     Phoenix.PubSub.broadcast(
       Core.PubSub,
       "TRADE_EVENTS:#{trade_event.symbol}",
