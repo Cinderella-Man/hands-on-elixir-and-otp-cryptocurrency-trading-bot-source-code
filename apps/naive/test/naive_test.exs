@@ -57,7 +57,8 @@ defmodule NaiveTest do
       # it should trigger fake fill event for placed sell order
       generate_event(8, "0.43205", "345.14235000"),
       # this one should trigger buy order for a new trader process
-      generate_event(9, "0.43210", "3201.86480000")
+      generate_event(9, "0.43205", "345.14235000"),
+      generate_event(10, "0.43210", "3201.86480000")
     ]
     |> Enum.each(fn event ->
       Phoenix.PubSub.broadcast(

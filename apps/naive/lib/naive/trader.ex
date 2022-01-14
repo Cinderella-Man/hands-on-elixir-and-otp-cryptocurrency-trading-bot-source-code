@@ -102,6 +102,38 @@ defmodule Naive.Trader do
   end
 
   def handle_info(
+        %TradeEvent{},
+        %State{
+          id: id,
+          symbol: symbol,
+          buy_order: %Binance.OrderResponse{
+            price: buy_price,
+            orig_qty: quantity,
+            status: "FILLED"
+          },
+          sell_order: nil,
+          profit_interval: profit_interval,
+          tick_size: tick_size
+        } = state
+      ) do
+    sell_price = calculate_sell_price(buy_price, profit_interval, tick_size)
+
+    @logger.info(
+      "The trader(#{id}) is placing a SELL order for " <>
+        "#{symbol} @ #{sell_price}, quantity: #{quantity}."
+    )
+
+    {:ok, %Binance.OrderResponse{} = order} =
+      @binance_client.order_limit_sell(symbol, quantity, sell_price, "GTC")
+
+    :ok = broadcast_order(order)
+
+    new_state = %{state | sell_order: order}
+    @leader.notify(:trader_state_updated, new_state)
+    {:noreply, new_state}
+  end
+
+  def handle_info(
         %TradeEvent{
           buyer_order_id: order_id
         },
@@ -110,13 +142,9 @@ defmodule Naive.Trader do
           symbol: symbol,
           buy_order:
             %Binance.OrderResponse{
-              price: buy_price,
               order_id: order_id,
-              orig_qty: quantity,
               transact_time: timestamp
-            } = buy_order,
-          profit_interval: profit_interval,
-          tick_size: tick_size
+            } = buy_order
         } = state
       ) do
     {:ok, %Binance.Order{} = current_buy_order} =
@@ -130,28 +158,25 @@ defmodule Naive.Trader do
 
     buy_order = %{buy_order | status: current_buy_order.status}
 
-    {:ok, new_state} =
-      if buy_order.status == "FILLED" do
-        sell_price = calculate_sell_price(buy_price, profit_interval, tick_size)
-
-        @logger.info(
-          "The trader(#{id}) is placing a SELL order for " <>
-            "#{symbol} @ #{sell_price}, quantity: #{quantity}."
-        )
-
-        {:ok, %Binance.OrderResponse{} = order} =
-          @binance_client.order_limit_sell(symbol, quantity, sell_price, "GTC")
-
-        :ok = broadcast_order(order)
-
-        {:ok, %{state | buy_order: buy_order, sell_order: order}}
-      else
-        @logger.info("Trader's(#{id} #{symbol} buy order got partially filled")
-        {:ok, %{state | buy_order: buy_order}}
-      end
+    @logger.info("Trader's(#{id} #{symbol} buy order got partially filled")
+    new_state = %{state | buy_order: buy_order}
 
     @leader.notify(:trader_state_updated, new_state)
     {:noreply, new_state}
+  end
+
+  def handle_info(
+        %TradeEvent{},
+        %State{
+          id: id,
+          symbol: symbol,
+          sell_order: %Binance.OrderResponse{
+            status: "FILLED"
+          }
+        } = state
+      ) do
+    @logger.info("Trader(#{id}) finished trade cycle for #{symbol}")
+    {:stop, :normal, state}
   end
 
   def handle_info(
@@ -179,14 +204,9 @@ defmodule Naive.Trader do
 
     sell_order = %{sell_order | status: current_sell_order.status}
 
-    if sell_order.status == "FILLED" do
-      @logger.info("Trader(#{id}) finished trade cycle for #{symbol}")
-      {:stop, :normal, state}
-    else
-      @logger.info("Trader's(#{id} #{symbol} SELL order got partially filled")
-      new_state = %{state | sell_order: sell_order}
-      {:noreply, new_state}
-    end
+    @logger.info("Trader's(#{id} #{symbol} SELL order got partially filled")
+    new_state = %{state | sell_order: sell_order}
+    {:noreply, new_state}
   end
 
   def handle_info(
