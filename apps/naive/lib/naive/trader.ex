@@ -1,7 +1,6 @@
 defmodule Naive.Trader do
   use GenServer, restart: :temporary
 
-  alias Decimal, as: D
   alias Core.Struct.TradeEvent
 
   require Logger
@@ -55,22 +54,18 @@ defmodule Naive.Trader do
     {:ok, state}
   end
 
-  def handle_info(
-        %TradeEvent{price: price},
+  def handle_info(%TradeEvent{} = trade_event, %State{} = state) do
+    Naive.Strategy.generate_decision(trade_event, state)
+    |> execute(state)
+  end
+
+  def execute(
+        {:place_buy_order, price, quantity},
         %State{
           id: id,
-          symbol: symbol,
-          budget: budget,
-          buy_order: nil,
-          buy_down_interval: buy_down_interval,
-          tick_size: tick_size,
-          step_size: step_size
+          symbol: symbol
         } = state
       ) do
-    price = calculate_buy_price(price, buy_down_interval, tick_size)
-
-    quantity = calculate_quantity(budget, price, step_size)
-
     @logger.info(
       "The trader(#{id}) is placing a BUY order " <>
         "for #{symbol} @ #{price}, quantity: #{quantity}"
@@ -86,38 +81,16 @@ defmodule Naive.Trader do
     {:noreply, new_state}
   end
 
-  def handle_info(
-        %TradeEvent{
-          buyer_order_id: order_id
-        },
-        %State{
-          buy_order: %Binance.OrderResponse{
-            order_id: order_id,
-            status: "FILLED"
-          },
-          sell_order: %Binance.OrderResponse{}
-        } = state
-      ) do
-    {:noreply, state}
-  end
-
-  def handle_info(
-        %TradeEvent{},
+  def execute(
+        {:place_sell_order, sell_price},
         %State{
           id: id,
           symbol: symbol,
           buy_order: %Binance.OrderResponse{
-            price: buy_price,
-            orig_qty: quantity,
-            status: "FILLED"
-          },
-          sell_order: nil,
-          profit_interval: profit_interval,
-          tick_size: tick_size
+            orig_qty: quantity
+          }
         } = state
       ) do
-    sell_price = calculate_sell_price(buy_price, profit_interval, tick_size)
-
     @logger.info(
       "The trader(#{id}) is placing a SELL order for " <>
         "#{symbol} @ #{sell_price}, quantity: #{quantity}."
@@ -133,10 +106,8 @@ defmodule Naive.Trader do
     {:noreply, new_state}
   end
 
-  def handle_info(
-        %TradeEvent{
-          buyer_order_id: order_id
-        },
+  def execute(
+        :fetch_buy_order,
         %State{
           id: id,
           symbol: symbol,
@@ -165,24 +136,19 @@ defmodule Naive.Trader do
     {:noreply, new_state}
   end
 
-  def handle_info(
-        %TradeEvent{},
+  def execute(
+        :exit,
         %State{
           id: id,
-          symbol: symbol,
-          sell_order: %Binance.OrderResponse{
-            status: "FILLED"
-          }
+          symbol: symbol
         } = state
       ) do
     @logger.info("Trader(#{id}) finished trade cycle for #{symbol}")
     {:stop, :normal, state}
   end
 
-  def handle_info(
-        %TradeEvent{
-          seller_order_id: order_id
-        },
+  def execute(
+        :fetch_sell_order,
         %State{
           id: id,
           symbol: symbol,
@@ -209,93 +175,21 @@ defmodule Naive.Trader do
     {:noreply, new_state}
   end
 
-  def handle_info(
-        %TradeEvent{
-          price: current_price
-        },
+  def execute(
+        :rebuy,
         %State{
           id: id,
-          symbol: symbol,
-          buy_order: %Binance.OrderResponse{
-            price: buy_price
-          },
-          rebuy_interval: rebuy_interval,
-          rebuy_notified: false
+          symbol: symbol
         } = state
       ) do
-    if trigger_rebuy?(buy_price, current_price, rebuy_interval) do
-      @logger.info("Rebuy triggered for #{symbol} by the trader(#{id})")
-      new_state = %{state | rebuy_notified: true}
-      @leader.notify(:rebuy_triggered, new_state)
-      {:noreply, new_state}
-    else
-      {:noreply, state}
-    end
+    @logger.info("Rebuy triggered for #{symbol} by the trader(#{id})")
+    new_state = %{state | rebuy_notified: true}
+    @leader.notify(:rebuy_triggered, new_state)
+    {:noreply, new_state}
   end
 
-  def handle_info(%TradeEvent{}, state) do
+  def execute(:skip, state) do
     {:noreply, state}
-  end
-
-  defp calculate_sell_price(buy_price, profit_interval, tick_size) do
-    fee = "1.001"
-    original_price = D.mult(buy_price, fee)
-
-    net_target_price =
-      D.mult(
-        original_price,
-        D.add("1.0", profit_interval)
-      )
-
-    gross_target_price = D.mult(net_target_price, fee)
-
-    D.to_string(
-      D.mult(
-        D.div_int(gross_target_price, tick_size),
-        tick_size
-      ),
-      :normal
-    )
-  end
-
-  defp calculate_buy_price(current_price, buy_down_interval, tick_size) do
-    # not necessarily legal price
-    exact_buy_price =
-      D.sub(
-        current_price,
-        D.mult(current_price, buy_down_interval)
-      )
-
-    D.to_string(
-      D.mult(
-        D.div_int(exact_buy_price, tick_size),
-        tick_size
-      ),
-      :normal
-    )
-  end
-
-  defp calculate_quantity(budget, price, step_size) do
-    # not necessarily legal quantity
-    exact_target_quantity = D.div(budget, price)
-
-    D.to_string(
-      D.mult(
-        D.div_int(exact_target_quantity, step_size),
-        step_size
-      ),
-      :normal
-    )
-  end
-
-  defp trigger_rebuy?(buy_price, current_price, rebuy_interval) do
-    rebuy_price =
-      D.sub(
-        buy_price,
-        D.mult(buy_price, rebuy_interval)
-      )
-
-    D.lt?(current_price, rebuy_price)
   end
 
   defp broadcast_order(%Binance.OrderResponse{} = response) do

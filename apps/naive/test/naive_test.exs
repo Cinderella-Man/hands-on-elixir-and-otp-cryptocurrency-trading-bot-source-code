@@ -36,7 +36,7 @@ defmodule NaiveTest do
     DataWarehouse.start_storing("ORDERS", "XRPUSDT")
     :timer.sleep(5000)
 
-    # Step 4 - Broadcast 9 events
+    # Step 4 - Broadcast 10 events
 
     [
       # buy order palced @ 0.4307
