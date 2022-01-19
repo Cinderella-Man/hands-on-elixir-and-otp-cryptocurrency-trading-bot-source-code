@@ -56,10 +56,10 @@ defmodule Naive.Trader do
 
   def handle_info(%TradeEvent{} = trade_event, %State{} = state) do
     Naive.Strategy.generate_decision(trade_event, state)
-    |> execute(state)
+    |> execute_decision(state)
   end
 
-  def execute(
+  def execute_decision(
         {:place_buy_order, price, quantity},
         %State{
           id: id,
@@ -81,7 +81,7 @@ defmodule Naive.Trader do
     {:noreply, new_state}
   end
 
-  def execute(
+  def execute_decision(
         {:place_sell_order, sell_price},
         %State{
           id: id,
@@ -106,7 +106,7 @@ defmodule Naive.Trader do
     {:noreply, new_state}
   end
 
-  def execute(
+  def execute_decision(
         :fetch_buy_order,
         %State{
           id: id,
@@ -136,7 +136,7 @@ defmodule Naive.Trader do
     {:noreply, new_state}
   end
 
-  def execute(
+  def execute_decision(
         :exit,
         %State{
           id: id,
@@ -147,7 +147,7 @@ defmodule Naive.Trader do
     {:stop, :normal, state}
   end
 
-  def execute(
+  def execute_decision(
         :fetch_sell_order,
         %State{
           id: id,
@@ -175,7 +175,7 @@ defmodule Naive.Trader do
     {:noreply, new_state}
   end
 
-  def execute(
+  def execute_decision(
         :rebuy,
         %State{
           id: id,
@@ -188,7 +188,7 @@ defmodule Naive.Trader do
     {:noreply, new_state}
   end
 
-  def execute(:skip, state) do
+  def execute_decision(:skip, state) do
     {:noreply, state}
   end
 
