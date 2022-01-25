@@ -185,12 +185,12 @@ defmodule Naive.Strategy do
   end
 
   defp execute_decision(
-        {:place_buy_order, price, quantity},
-        %State{
-          id: id,
-          symbol: symbol
-        } = state
-      ) do
+         {:place_buy_order, price, quantity},
+         %State{
+           id: id,
+           symbol: symbol
+         } = state
+       ) do
     @logger.info(
       "The trader(#{id}) is placing a BUY order " <>
         "for #{symbol} @ #{price}, quantity: #{quantity}"
@@ -207,15 +207,15 @@ defmodule Naive.Strategy do
   end
 
   defp execute_decision(
-        {:place_sell_order, sell_price},
-        %State{
-          id: id,
-          symbol: symbol,
-          buy_order: %Binance.OrderResponse{
-            orig_qty: quantity
-          }
-        } = state
-      ) do
+         {:place_sell_order, sell_price},
+         %State{
+           id: id,
+           symbol: symbol,
+           buy_order: %Binance.OrderResponse{
+             orig_qty: quantity
+           }
+         } = state
+       ) do
     @logger.info(
       "The trader(#{id}) is placing a SELL order for " <>
         "#{symbol} @ #{sell_price}, quantity: #{quantity}."
@@ -232,17 +232,17 @@ defmodule Naive.Strategy do
   end
 
   defp execute_decision(
-        :fetch_buy_order,
-        %State{
-          id: id,
-          symbol: symbol,
-          buy_order:
-            %Binance.OrderResponse{
-              order_id: order_id,
-              transact_time: timestamp
-            } = buy_order
-        } = state
-      ) do
+         :fetch_buy_order,
+         %State{
+           id: id,
+           symbol: symbol,
+           buy_order:
+             %Binance.OrderResponse{
+               order_id: order_id,
+               transact_time: timestamp
+             } = buy_order
+         } = state
+       ) do
     {:ok, %Binance.Order{} = current_buy_order} =
       @binance_client.get_order(
         symbol,
@@ -262,28 +262,28 @@ defmodule Naive.Strategy do
   end
 
   defp execute_decision(
-        :exit,
-        %State{
-          id: id,
-          symbol: symbol
-        } = state
-      ) do
+         :exit,
+         %State{
+           id: id,
+           symbol: symbol
+         } = state
+       ) do
     @logger.info("Trader(#{id}) finished trade cycle for #{symbol}")
     :exit
   end
 
   defp execute_decision(
-        :fetch_sell_order,
-        %State{
-          id: id,
-          symbol: symbol,
-          sell_order:
-            %Binance.OrderResponse{
-              order_id: order_id,
-              transact_time: timestamp
-            } = sell_order
-        } = state
-      ) do
+         :fetch_sell_order,
+         %State{
+           id: id,
+           symbol: symbol,
+           sell_order:
+             %Binance.OrderResponse{
+               order_id: order_id,
+               transact_time: timestamp
+             } = sell_order
+         } = state
+       ) do
     {:ok, %Binance.Order{} = current_sell_order} =
       @binance_client.get_order(
         symbol,
@@ -301,12 +301,12 @@ defmodule Naive.Strategy do
   end
 
   defp execute_decision(
-        :rebuy,
-        %State{
-          id: id,
-          symbol: symbol
-        } = state
-      ) do
+         :rebuy,
+         %State{
+           id: id,
+           symbol: symbol
+         } = state
+       ) do
     @logger.info("Rebuy triggered for #{symbol} by the trader(#{id})")
     new_state = %{state | rebuy_notified: true}
     @leader.notify(:rebuy_triggered, new_state)
