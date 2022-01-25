@@ -5,8 +5,6 @@ defmodule Naive.Trader do
 
   require Logger
 
-  @binance_client Application.compile_env(:naive, :binance_client)
-  @leader Application.get_env(:naive, :leader)
   @logger Application.get_env(:core, :logger)
   @pubsub_client Application.get_env(:core, :pubsub_client)
 
