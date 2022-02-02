@@ -18,14 +18,14 @@ defmodule Indicator.Ohlc do
     :close
   ]
 
-  def process({symbol, duration}, %TradeEvent{} = trade_event) do
-    generate_ohlc(symbol, duration, trade_event.price, trade_event.trade_time)
-  end
-
   def process(%__MODULE__{} = ohlc, %TradeEvent{} = trade_event) do
     {old_ohlc, new_ohlc} = merge_price(ohlc, trade_event.price, trade_event.trade_time)
     maybe_broadcast(old_ohlc)
     new_ohlc
+  end
+
+  def process({symbol, duration}, %TradeEvent{} = trade_event) do
+    generate_ohlc(symbol, duration, trade_event.price, trade_event.trade_time)
   end
 
   def merge_price(%__MODULE__{} = ohlc, price, trade_time) do
