@@ -1,6 +1,8 @@
 defmodule Indicator.Ohlc do
   alias Core.Struct.TradeEvent
 
+  require Logger
+
   @pubsub_client Application.get_env(:core, :pubsub_client)
 
   @enforce_keys [
@@ -60,6 +62,8 @@ defmodule Indicator.Ohlc do
   defp maybe_broadcast(nil), do: :ok
 
   defp maybe_broadcast(%__MODULE__{} = ohlc) do
+    Logger.debug("Broadcasting OHLC: #{inspect(ohlc)}")
+
     @pubsub_client.broadcast(
       Core.PubSub,
       "OHLC:#{ohlc.symbol}",
