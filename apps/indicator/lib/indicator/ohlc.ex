@@ -21,24 +21,25 @@ defmodule Indicator.Ohlc do
   ]
 
   def process([_ | _] = ohlcs, %TradeEvent{} = trade_event) do
-    results =
-      ohlcs
-      |> Enum.map(&merge_price(&1, trade_event.price, trade_event.trade_time))
+    {old_ohlcs, new_ohlcs} = merge_prices(ohlcs, trade_event.price, trade_event.trade_time)
 
-    results |> Enum.map(&maybe_broadcast(elem(&1, 0)))
-    results |> Enum.map(&elem(&1, 1))
+    old_ohlcs |> Enum.map(&maybe_broadcast/1)
+    new_ohlcs
   end
 
   def process(symbol, %TradeEvent{} = trade_event) do
-    [1, 5, 15, 60, 4 * 60, 24 * 60]
-    |> Enum.map(
-      &generate_ohlc(
-        symbol,
-        &1,
-        trade_event.price,
-        trade_event.trade_time
-      )
-    )
+    generate_ohlcs(symbol, trade_event.price, trade_event.trade_time)
+  end
+
+  def merge_prices(ohlcs, price, trade_time) do
+    results =
+      ohlcs
+      |> Enum.map(&merge_price(&1, price, trade_time))
+
+    {
+      results |> Enum.map(&elem(&1, 0)) |> Enum.filter(& &1),
+      results |> Enum.map(&elem(&1, 1))
+    }
   end
 
   def merge_price(%__MODULE__{} = ohlc, price, trade_time) do
@@ -54,6 +55,18 @@ defmodule Indicator.Ohlc do
     trade_time = div(trade_time, 1000)
 
     start_time <= trade_time && trade_time < end_time
+  end
+
+  def generate_ohlcs(symbol, price, trade_time) do
+    [1, 5, 15, 60, 4 * 60, 24 * 60]
+    |> Enum.map(
+      &generate_ohlc(
+        symbol,
+        &1,
+        price,
+        trade_time
+      )
+    )
   end
 
   def generate_ohlc(symbol, duration, price, trade_time) do
