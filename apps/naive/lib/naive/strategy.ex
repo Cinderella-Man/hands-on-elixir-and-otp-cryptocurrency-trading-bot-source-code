@@ -243,6 +243,8 @@ defmodule Naive.Strategy do
              } = buy_order
          } = state
        ) do
+    @logger.info("Trader's(#{id} #{symbol} buy order got partially filled")
+
     {:ok, %Binance.Order{} = current_buy_order} =
       @binance_client.get_order(
         symbol,
@@ -254,9 +256,7 @@ defmodule Naive.Strategy do
 
     buy_order = %{buy_order | status: current_buy_order.status}
 
-    @logger.info("Trader's(#{id} #{symbol} buy order got partially filled")
     new_state = %{state | buy_order: buy_order}
-
     @leader.notify(:trader_state_updated, new_state)
     {:ok, new_state}
   end
@@ -284,6 +284,8 @@ defmodule Naive.Strategy do
              } = sell_order
          } = state
        ) do
+    @logger.info("Trader's(#{id} #{symbol} SELL order got partially filled")
+
     {:ok, %Binance.Order{} = current_sell_order} =
       @binance_client.get_order(
         symbol,
@@ -295,7 +297,6 @@ defmodule Naive.Strategy do
 
     sell_order = %{sell_order | status: current_sell_order.status}
 
-    @logger.info("Trader's(#{id} #{symbol} SELL order got partially filled")
     new_state = %{state | sell_order: sell_order}
     {:ok, new_state}
   end
