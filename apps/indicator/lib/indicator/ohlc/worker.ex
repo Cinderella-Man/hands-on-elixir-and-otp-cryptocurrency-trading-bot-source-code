@@ -5,8 +5,8 @@ defmodule Indicator.Ohlc.Worker do
 
   alias Core.Struct.TradeEvent
 
-  @logger Application.get_env(:core, :logger)
-  @pubsub_client Application.get_env(:core, :pubsub_client)
+  @logger Application.compile_env(:core, :logger)
+  @pubsub_client Application.compile_env(:core, :pubsub_client)
 
   def start_link(symbol) do
     GenServer.start_link(__MODULE__, symbol)

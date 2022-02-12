@@ -3,7 +3,7 @@ defmodule Indicator.Ohlc do
 
   alias Core.Struct.TradeEvent
 
-  @pubsub_client Application.get_env(:core, :pubsub_client)
+  @pubsub_client Application.compile_env(:core, :pubsub_client)
 
   @enforce_keys [
     :symbol,
@@ -24,7 +24,7 @@ defmodule Indicator.Ohlc do
   def process([_ | _] = ohlcs, %TradeEvent{} = trade_event) do
     {old_ohlcs, new_ohlcs} = merge_prices(ohlcs, trade_event.price, trade_event.trade_time)
 
-    old_ohlcs |> Enum.map(&maybe_broadcast/1)
+    old_ohlcs |> Enum.each(&maybe_broadcast/1)
     new_ohlcs
   end
 

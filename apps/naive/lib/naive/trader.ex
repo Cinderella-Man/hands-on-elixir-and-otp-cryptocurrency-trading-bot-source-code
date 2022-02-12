@@ -5,8 +5,8 @@ defmodule Naive.Trader do
 
   require Logger
 
-  @logger Application.get_env(:core, :logger)
-  @pubsub_client Application.get_env(:core, :pubsub_client)
+  @logger Application.compile_env(:core, :logger)
+  @pubsub_client Application.compile_env(:core, :pubsub_client)
 
   defmodule State do
     @enforce_keys [
