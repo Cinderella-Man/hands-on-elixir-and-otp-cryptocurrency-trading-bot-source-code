@@ -1,9 +1,9 @@
 defmodule Indicator.Ohlc.Worker do
   use GenServer
 
-  alias Core.Struct.TradeEvent
-
   require Logger
+
+  alias Core.Struct.TradeEvent
 
   @logger Application.get_env(:core, :logger)
   @pubsub_client Application.get_env(:core, :pubsub_client)
@@ -15,7 +15,7 @@ defmodule Indicator.Ohlc.Worker do
   def init(symbol) do
     symbol = String.upcase(symbol)
 
-    @logger.debug("Initializing new a OHLC worker for #{symbol}")
+    @logger.info("Initializing a new OHLC worker for #{symbol}")
 
     @pubsub_client.subscribe(
       Core.PubSub,
