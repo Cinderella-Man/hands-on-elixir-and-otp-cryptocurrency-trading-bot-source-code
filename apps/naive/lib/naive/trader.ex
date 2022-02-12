@@ -42,7 +42,7 @@ defmodule Naive.Trader do
   def init(%State{id: id, symbol: symbol} = state) do
     symbol = String.upcase(symbol)
 
-    @logger.info("Initializing new trader(#{id}) for #{symbol}")
+    @logger.info("Initializing a new trader(#{id}) for #{symbol}")
 
     @pubsub_client.subscribe(
       Core.PubSub,
