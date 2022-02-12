@@ -7,9 +7,9 @@ defmodule Naive.Trader do
   require Logger
 
   @binance_client Application.compile_env(:naive, :binance_client)
-  @leader Application.get_env(:naive, :leader)
-  @logger Application.get_env(:core, :logger)
-  @pubsub_client Application.get_env(:core, :pubsub_client)
+  @leader Application.compile_env(:naive, :leader)
+  @logger Application.compile_env(:core, :logger)
+  @pubsub_client Application.compile_env(:core, :pubsub_client)
 
   defmodule State do
     @enforce_keys [
