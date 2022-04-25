@@ -162,6 +162,7 @@ defmodule Naive.Trader do
     else
       Logger.info("Sell order partially filled")
       new_state = %{state | sell_order: sell_order}
+      Naive.Leader.notify(:trader_state_updated, new_state)
       {:noreply, new_state}
     end
   end
