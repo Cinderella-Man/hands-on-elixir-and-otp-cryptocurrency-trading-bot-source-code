@@ -298,6 +298,7 @@ defmodule Naive.Strategy do
     sell_order = %{sell_order | status: current_sell_order.status}
 
     new_state = %{state | sell_order: sell_order}
+    @leader.notify(:trader_state_updated, new_state)
     {:ok, new_state}
   end
 
