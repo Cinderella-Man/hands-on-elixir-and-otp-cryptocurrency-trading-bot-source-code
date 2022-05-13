@@ -2,23 +2,23 @@ defmodule Naive do
   @moduledoc """
   Documentation for `Naive`.
   """
-  alias Naive.DynamicSymbolSupervisor
+  alias Naive.DynamicTraderSupervisor
 
   def start_trading(symbol) do
     symbol
     |> String.upcase()
-    |> DynamicSymbolSupervisor.start_worker()
+    |> DynamicTraderSupervisor.start_worker()
   end
 
   def stop_trading(symbol) do
     symbol
     |> String.upcase()
-    |> DynamicSymbolSupervisor.stop_worker()
+    |> DynamicTraderSupervisor.stop_worker()
   end
 
   def shutdown_trading(symbol) do
     symbol
     |> String.upcase()
-    |> DynamicSymbolSupervisor.shutdown_worker()
+    |> DynamicTraderSupervisor.shutdown_worker()
   end
 end

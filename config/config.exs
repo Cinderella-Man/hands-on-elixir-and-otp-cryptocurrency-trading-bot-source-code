@@ -39,6 +39,7 @@ config :naive,
   binance_client: BinanceMock,
   ecto_repos: [Naive.Repo],
   leader: Naive.Leader,
+  repo: Naive.Repo,
   trading: %{
     defaults: %{
       chunks: 5,

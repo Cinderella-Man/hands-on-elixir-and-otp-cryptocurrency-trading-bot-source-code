@@ -6,4 +6,5 @@ config :core,
 
 config :naive,
   binance_client: Test.BinanceMock,
-  leader: Test.Naive.LeaderMock
+  leader: Test.Naive.LeaderMock,
+  repo: Test.Naive.RepoMock
