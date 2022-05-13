@@ -149,7 +149,7 @@ defmodule Naive.Strategy do
         _positions,
         _settings
       ) do
-    :exit
+    :finished
   end
 
   def generate_decision(
@@ -328,15 +328,18 @@ defmodule Naive.Strategy do
   end
 
   defp execute_decision(
-         :exit,
+         :finished,
          %Position{
            id: id,
            symbol: symbol
          },
-         _settings
+         settings
        ) do
+    new_position = generate_fresh_position(settings)
+
     @logger.info("Position (#{symbol}/#{id}): Trade cycle finished")
-    :exit
+
+    {:ok, new_position}
   end
 
   defp execute_decision(
