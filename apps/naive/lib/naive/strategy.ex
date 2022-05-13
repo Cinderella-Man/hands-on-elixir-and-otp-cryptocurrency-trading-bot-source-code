@@ -6,7 +6,6 @@ defmodule Naive.Strategy do
   require Logger
 
   @binance_client Application.compile_env(:naive, :binance_client)
-  @leader Application.compile_env(:naive, :leader)
   @logger Application.compile_env(:core, :logger)
   @pubsub_client Application.compile_env(:core, :pubsub_client)
   @repo Application.compile_env(:naive, :repo)
@@ -272,9 +271,7 @@ defmodule Naive.Strategy do
 
     :ok = broadcast_order(order)
 
-    new_position = %{position | buy_order: order}
-    @leader.notify(:trader_state_updated, new_position)
-    {:ok, new_position}
+    {:ok, %{position | buy_order: order}}
   end
 
   defp execute_decision(
@@ -298,9 +295,7 @@ defmodule Naive.Strategy do
 
     :ok = broadcast_order(order)
 
-    new_position = %{position | sell_order: order}
-    @leader.notify(:trader_state_updated, new_position)
-    {:ok, new_position}
+    {:ok, %{position | sell_order: order}}
   end
 
   defp execute_decision(
@@ -329,9 +324,7 @@ defmodule Naive.Strategy do
 
     buy_order = %{buy_order | status: current_buy_order.status}
 
-    new_position = %{position | buy_order: buy_order}
-    @leader.notify(:trader_state_updated, new_position)
-    {:ok, new_position}
+    {:ok, %{position | buy_order: buy_order}}
   end
 
   defp execute_decision(
@@ -372,9 +365,7 @@ defmodule Naive.Strategy do
 
     sell_order = %{sell_order | status: current_sell_order.status}
 
-    new_position = %{position | sell_order: sell_order}
-    @leader.notify(:trader_state_updated, new_position)
-    {:ok, new_position}
+    {:ok, %{position | sell_order: sell_order}}
   end
 
   defp execute_decision(
@@ -386,9 +377,7 @@ defmodule Naive.Strategy do
          _settings
        ) do
     @logger.info("Position (#{symbol}/#{id}): Rebuy triggered")
-    new_position = %{position | rebuy_notified: true}
-    @leader.notify(:rebuy_triggered, new_position)
-    {:ok, new_position}
+    {:ok, %{position | rebuy_notified: true}}
   end
 
   defp execute_decision(:skip, state, _settings) do
