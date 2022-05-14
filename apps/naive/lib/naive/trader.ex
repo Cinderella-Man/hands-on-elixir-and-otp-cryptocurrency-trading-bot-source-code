@@ -47,12 +47,24 @@ defmodule Naive.Trader do
     call_trader(settings.symbol, {:update_settings, settings})
   end
 
+  def get_positions(symbol) do
+    call_trader(symbol, {:get_positions, symbol})
+  end
+
   def handle_call(
         {:update_settings, new_settings},
         _,
         state
       ) do
     {:reply, :ok, %{state | settings: new_settings}}
+  end
+
+  def handle_call(
+        {:get_positions, _symbol},
+        _,
+        state
+      ) do
+    {:reply, state.positions, state}
   end
 
   def handle_info(%TradeEvent{} = trade_event, %State{} = state) do

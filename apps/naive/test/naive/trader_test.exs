@@ -46,7 +46,7 @@ defmodule Naive.TraderTest do
   end
 
   defp dummy_trader_state() do
-    %Naive.Trader.State{
+    %Naive.Strategy.Position{
       id: 100_000_000,
       symbol: "XRPUSDT",
       budget: "200",

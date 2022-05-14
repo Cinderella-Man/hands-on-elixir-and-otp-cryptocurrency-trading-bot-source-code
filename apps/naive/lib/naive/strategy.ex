@@ -67,6 +67,14 @@ defmodule Naive.Strategy do
       :exit ->
         generate_decisions(rest, generated_results, trade_event, settings)
 
+      :rebuy ->
+        generate_decisions(
+          rest,
+          [{:skip, %{position | rebuy_notified: true}}, {:rebuy, position}] ++ generated_results,
+          trade_event,
+          settings
+        )
+
       decision ->
         generate_decisions(
           rest,
@@ -189,11 +197,12 @@ defmodule Naive.Strategy do
           rebuy_interval: rebuy_interval,
           rebuy_notified: false
         },
-        _positions,
+        positions,
         settings
       ) do
     if trigger_rebuy?(buy_price, current_price, rebuy_interval) &&
-         settings.status != "shutdown" do
+         settings.status != "shutdown" &&
+         length(positions) < settings.chunks do
       :rebuy
     else
       :skip
@@ -388,11 +397,14 @@ defmodule Naive.Strategy do
          %Position{
            id: id,
            symbol: symbol
-         } = position,
-         _settings
+         },
+         settings
        ) do
-    @logger.info("Position (#{symbol}/#{id}): Rebuy triggered")
-    {:ok, %{position | rebuy_notified: true}}
+    new_position = generate_fresh_position(settings)
+
+    @logger.info("Position (#{symbol}/#{id}): Rebuy triggered. Starting new position")
+
+    {:ok, new_position}
   end
 
   defp execute_decision(:skip, state, _settings) do
