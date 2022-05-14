@@ -471,7 +471,7 @@ defmodule Naive.Strategy do
   end
 
   def update_status(symbol, status)
-       when is_binary(symbol) and is_binary(status) do
+      when is_binary(symbol) and is_binary(status) do
     @repo.get_by(Settings, symbol: symbol)
     |> Ecto.Changeset.change(%{status: status})
     |> @repo.update()
