@@ -43,13 +43,41 @@ defmodule Naive.Trader do
     {:noreply, %State{settings: settings, positions: positions}}
   end
 
+  def notify(:settings_updated, settings) do
+    call_trader(settings.symbol, {:update_settings, settings})
+  end
+
+  def handle_call(
+        {:update_settings, new_settings},
+        _,
+        state
+      ) do
+    {:reply, :ok, %{state | settings: new_settings}}
+  end
+
   def handle_info(%TradeEvent{} = trade_event, %State{} = state) do
     case Naive.Strategy.execute(trade_event, state.positions, state.settings) do
       {:ok, updated_positions} ->
         {:noreply, %{state | positions: updated_positions}}
 
       :exit ->
+        {:ok, _settings} = Strategy.update_status(trade_event.symbol, "off")
+        Logger.info("Trading for #{trade_event.symbol} stopped")
         {:stop, :normal, state}
+    end
+  end
+
+  defp call_trader(symbol, data) do
+    case Registry.lookup(@registry, symbol) do
+      [{pid, _}] ->
+        GenServer.call(
+          pid,
+          data
+        )
+
+      _ ->
+        Logger.warn("Unable to locate trader process assigned to #{symbol}")
+        {:error, :unable_to_locate_trader}
     end
   end
 

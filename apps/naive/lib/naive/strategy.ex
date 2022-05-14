@@ -46,6 +46,10 @@ defmodule Naive.Strategy do
     |> then(&parse_results/1)
   end
 
+  def parse_results([]) do
+    :exit
+  end
+
   def parse_results([_ | _] = results) do
     results
     |> Enum.map(fn {:ok, new_position} -> new_position end)
@@ -60,6 +64,9 @@ defmodule Naive.Strategy do
     current_positions = positions ++ (generated_results |> Enum.map(&elem(&1, 0)))
 
     case generate_decision(trade_event, position, current_positions, settings) do
+      :exit ->
+        generate_decisions(rest, generated_results, trade_event, settings)
+
       decision ->
         generate_decisions(
           rest,
@@ -147,9 +154,13 @@ defmodule Naive.Strategy do
           }
         },
         _positions,
-        _settings
+        settings
       ) do
-    :finished
+    if settings.status != "shutdown" do
+      :finished
+    else
+      :exit
+    end
   end
 
   def generate_decision(
@@ -179,9 +190,10 @@ defmodule Naive.Strategy do
           rebuy_notified: false
         },
         _positions,
-        _settings
+        settings
       ) do
-    if trigger_rebuy?(buy_price, current_price, rebuy_interval) do
+    if trigger_rebuy?(buy_price, current_price, rebuy_interval) &&
+         settings.status != "shutdown" do
       :rebuy
     else
       :skip
@@ -456,5 +468,12 @@ defmodule Naive.Strategy do
         budget: D.div(settings.budget, settings.chunks),
         rebuy_notified: false
     }
+  end
+
+  def update_status(symbol, status)
+       when is_binary(symbol) and is_binary(status) do
+    @repo.get_by(Settings, symbol: symbol)
+    |> Ecto.Changeset.change(%{status: status})
+    |> @repo.update()
   end
 end
