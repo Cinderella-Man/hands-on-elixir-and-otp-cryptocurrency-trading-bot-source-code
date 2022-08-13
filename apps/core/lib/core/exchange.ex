@@ -11,7 +11,8 @@ defmodule Core.Exchange do
 
   defmodule Order do
     @type t :: %__MODULE__{
-            id: any(),
+            id: non_neg_integer(),
+            symbol: String.t(),
             price: number(),
             quantity: number(),
             side: :buy | :sell,
@@ -19,7 +20,7 @@ defmodule Core.Exchange do
             timestamp: non_neg_integer()
           }
 
-    defstruct [:id, :price, :quantity, :side, :status, :timestamp]
+    defstruct [:id, :symbol, :price, :quantity, :side, :status, :timestamp]
   end
 
   @callback fetch_symbols() ::

@@ -36,7 +36,7 @@ config :streamer, Streamer.Repo,
   hostname: "localhost"
 
 config :naive,
-  binance_client: BinanceMock,
+  exchange_client: BinanceMock,
   ecto_repos: [Naive.Repo],
   leader: Naive.Leader,
   repo: Naive.Repo,

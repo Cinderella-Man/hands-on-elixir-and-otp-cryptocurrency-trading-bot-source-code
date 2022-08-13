@@ -1,7 +1,7 @@
 import Config
 
 config :naive,
-  binance_client: Binance
+  exchange_client: Core.Exchange.Binance
 
 config :streamer,
-  binance_client: Binance
+  exchange_client: Core.Exchange.Binance
