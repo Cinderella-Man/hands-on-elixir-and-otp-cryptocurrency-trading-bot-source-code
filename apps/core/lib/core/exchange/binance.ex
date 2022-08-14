@@ -31,6 +31,7 @@ defmodule Core.Exchange.Binance do
         {:ok,
          %Exchange.Order{
            id: order.order_id,
+           symbol: order.symbol,
            price: order.price,
            quantity: order.orig_qty,
            side: side_to_atom(order.side),

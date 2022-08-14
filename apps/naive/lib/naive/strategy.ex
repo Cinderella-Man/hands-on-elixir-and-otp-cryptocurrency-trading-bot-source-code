@@ -1,5 +1,4 @@
 defmodule Naive.Strategy do
-
   alias Core.Exchange
   alias Core.Struct.TradeEvent
   alias Decimal, as: D
@@ -289,8 +288,7 @@ defmodule Naive.Strategy do
         "Placing a BUY order @ #{price}, quantity: #{quantity}"
     )
 
-    {:ok, %Exchange.Order{} = order} =
-      @exchange_client.order_limit_buy(symbol, quantity, price)
+    {:ok, %Exchange.Order{} = order} = @exchange_client.order_limit_buy(symbol, quantity, price)
 
     :ok = broadcast_order(order)
 
@@ -426,8 +424,8 @@ defmodule Naive.Strategy do
     db_settings = @repo.get_by!(Settings, symbol: symbol)
 
     Map.merge(
-      filters |> Map.from_struct,
-      db_settings |> Map.from_struct
+      filters |> Map.from_struct(),
+      db_settings |> Map.from_struct()
     )
   end
 

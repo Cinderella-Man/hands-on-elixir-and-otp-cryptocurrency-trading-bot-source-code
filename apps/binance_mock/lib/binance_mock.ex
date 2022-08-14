@@ -2,6 +2,7 @@ defmodule BinanceMock do
   @behaviour Core.Exchange
   use GenServer
 
+  alias Core.Exchange
   alias Core.Struct.TradeEvent
   alias Decimal, as: D
 
@@ -24,26 +25,25 @@ defmodule BinanceMock do
   end
 
   def fetch_symbols() do
-    case Application.get_env(:binance_mock, :use_cached_exchange_info) do
-      true -> get_cached_exchange_info()
-      _ -> case Binance.get_exchange_info() do
-        {:ok, %{symbols: symbols}} ->
-          symbols
-          |> Enum.map(& &1["symbol"])
-          |> then(&{:ok, &1})
+    case fetch_exchange_info() do
+      {:ok, %{symbols: symbols}} ->
+        symbols
+        |> Enum.map(& &1["symbol"])
+        |> then(&{:ok, &1})
 
-        error ->
-          error
-      end
+      error ->
+        error
     end
   end
 
-  def order_limit_buy(symbol, quantity, price, "GTC") do
-    order_limit(symbol, quantity, price, "BUY")
-  end
+  def fetch_symbol_filters(symbol) do
+    case fetch_exchange_info() do
+      {:ok, exchange_info} ->
+        {:ok, fetch_symbol_filters(symbol, exchange_info)}
 
-  def order_limit_sell(symbol, quantity, price, "GTC") do
-    order_limit(symbol, quantity, price, "SELL")
+      error ->
+        error
+    end
   end
 
   def get_order(symbol, time, order_id) do
@@ -53,46 +53,34 @@ defmodule BinanceMock do
     )
   end
 
+  def order_limit_buy(symbol, quantity, price) do
+    order_limit(symbol, quantity, price, "BUY")
+  end
+
+  def order_limit_sell(symbol, quantity, price) do
+    order_limit(symbol, quantity, price, "SELL")
+  end
+
   def generate_fake_order(order_id, symbol, quantity, price, side)
       when is_binary(symbol) and
              is_binary(quantity) and
              is_binary(price) and
              (side == "BUY" or side == "SELL") do
     current_timestamp = :os.system_time(:millisecond)
-    client_order_id = :crypto.hash(:md5, "#{order_id}") |> Base.encode16()
 
-    Binance.Order.new(%{
+    %Exchange.Order{
+      id: order_id,
       symbol: symbol,
-      order_id: order_id,
-      client_order_id: client_order_id,
       price: price,
-      orig_qty: quantity,
-      executed_qty: "0.00000000",
-      cummulative_quote_qty: "0.00000000",
-      status: "NEW",
-      time_in_force: "GTC",
-      type: "LIMIT",
-      side: side,
-      stop_price: "0.00000000",
-      iceberg_qty: "0.00000000",
-      time: current_timestamp,
-      update_time: current_timestamp,
-      is_working: true
-    })
-  end
-
-  def convert_order_to_order_response(%Binance.Order{} = order) do
-    %{
-      struct(
-        Binance.OrderResponse,
-        order |> Map.to_list()
-      )
-      | transact_time: order.time
+      quantity: quantity,
+      side: side_to_atom(side),
+      status: status_to_atom("NEW"),
+      timestamp: current_timestamp
     }
   end
 
   def handle_cast(
-        {:add_order, %Binance.Order{symbol: symbol} = order},
+        {:add_order, %Exchange.Order{symbol: symbol} = order},
         %State{
           order_books: order_books,
           subscriptions: subscriptions
@@ -195,7 +183,7 @@ defmodule BinanceMock do
   end
 
   defp order_limit(symbol, quantity, price, side) do
-    %Binance.Order{} =
+    %Exchange.Order{} =
       fake_order =
       generate_fake_order(
         GenServer.call(__MODULE__, :generate_id),
@@ -210,7 +198,7 @@ defmodule BinanceMock do
       {:add_order, fake_order}
     )
 
-    {:ok, convert_order_to_order_response(fake_order)}
+    {:ok, fake_order}
   end
 
   defp subscribe_to_topic(symbol, subscriptions) do
@@ -234,7 +222,7 @@ defmodule BinanceMock do
   end
 
   defp add_order(
-         %Binance.Order{symbol: symbol} = order,
+         %Exchange.Order{symbol: symbol} = order,
          order_books
        ) do
     order_book =
@@ -264,16 +252,15 @@ defmodule BinanceMock do
     Map.put(order_books, :"#{symbol}", order_book)
   end
 
-  defp convert_order_to_event(%Binance.Order{} = order, time) do
+  defp convert_order_to_event(%Exchange.Order{} = order, time) do
     %TradeEvent{
-      event_type: order.type,
       event_time: time - 1,
       symbol: order.symbol,
       trade_id: Integer.floor_div(time, 1000),
       price: order.price,
-      quantity: order.orig_qty,
-      buyer_order_id: order.order_id,
-      seller_order_id: order.order_id,
+      quantity: order.quantity,
+      buyer_order_id: order.id,
+      seller_order_id: order.id,
       trade_time: time - 1,
       buyer_market_maker: false
     }
@@ -287,20 +274,56 @@ defmodule BinanceMock do
     )
   end
 
-  defp get_cached_exchange_info do
-    {:ok, data} =
-      File.cwd!()
-      |> Path.split()
-      |> Enum.drop(-1)
-      |> Kernel.++([
-        "binance_mock",
-        "test",
-        "assets",
-        "exchange_info.json"
-      ])
-      |> Path.join()
-      |> File.read()
+  defp fetch_exchange_info() do
+    case Application.get_env(:binance_mock, :use_cached_exchange_info) do
+      true ->
+        get_cached_exchange_info()
 
-    {:ok, Jason.decode!(data) |> Binance.ExchangeInfo.new()}
+      _ ->
+        Binance.get_exchange_info()
+    end
+  end
+
+  defp get_cached_exchange_info do
+    File.cwd!()
+    |> Path.split()
+    |> Enum.drop(-1)
+    |> Kernel.++([
+      "binance_mock",
+      "test",
+      "assets",
+      "exchange_info.json"
+    ])
+    |> Path.join()
+    |> File.read()
+  end
+
+  defp side_to_atom("BUY"), do: :buy
+  defp side_to_atom("SELL"), do: :sell
+
+  defp status_to_atom("NEW"), do: :new
+  defp status_to_atom("FILLED"), do: :filled
+
+  defp fetch_symbol_filters(symbol, exchange_info) do
+    symbol_filters =
+      exchange_info
+      |> Map.get(:symbols)
+      |> Enum.find(&(&1["symbol"] == symbol))
+      |> Map.get("filters")
+
+    tick_size =
+      symbol_filters
+      |> Enum.find(&(&1["filterType"] == "PRICE_FILTER"))
+      |> Map.get("tickSize")
+
+    step_size =
+      symbol_filters
+      |> Enum.find(&(&1["filterType"] == "LOT_SIZE"))
+      |> Map.get("stepSize")
+
+    %Exchange.SymbolInfo{
+      tick_size: tick_size,
+      step_size: step_size
+    }
   end
 end

@@ -4,11 +4,11 @@ alias Decimal
 alias Naive.Repo
 alias Naive.Schema.Settings
 
-binance_client = Application.get_env(:naive, :binance_client)
+exchange_client = Application.get_env(:naive, :exchange_client)
 
 Logger.info("Fetching exchange info from Binance to create trading settings")
 
-{:ok, symbols} = binance_client.fetch_symbols()
+{:ok, symbols} = exchange_client.fetch_symbols()
 
 %{
   chunks: chunks,
