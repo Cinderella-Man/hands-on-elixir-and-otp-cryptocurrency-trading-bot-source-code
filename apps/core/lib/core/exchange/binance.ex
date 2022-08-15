@@ -106,6 +106,7 @@ defmodule Core.Exchange.Binance do
       |> Map.get("stepSize")
 
     %Exchange.SymbolInfo{
+      symbol: symbol,
       tick_size: tick_size,
       step_size: step_size
     }

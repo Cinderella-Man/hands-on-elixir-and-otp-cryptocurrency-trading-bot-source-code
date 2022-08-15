@@ -47,6 +47,10 @@ defmodule DataWarehouse.Subscriber.Worker do
     data =
       order
       |> Map.from_struct()
+      |> Map.merge(%{
+        side: atom_to_side(order.side),
+        status: atom_to_status(order.status)
+      })
 
     struct(DataWarehouse.Schema.Order, data)
     |> DataWarehouse.Repo.insert(
@@ -60,4 +64,10 @@ defmodule DataWarehouse.Subscriber.Worker do
   defp via_tuple(topic) do
     {:via, Registry, {:subscriber_workers, topic}}
   end
+
+  defp atom_to_side(:buy), do: "BUY"
+  defp atom_to_side(:sell), do: "SELL"
+
+  defp atom_to_status(:new), do: "NEW"
+  defp atom_to_status(:filled), do: "FILLED"
 end

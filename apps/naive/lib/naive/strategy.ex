@@ -420,7 +420,7 @@ defmodule Naive.Strategy do
   end
 
   def fetch_symbol_settings(symbol) do
-    filters = @exchange_client.fetch_symbol_filters()
+    {:ok, filters} = @exchange_client.fetch_symbol_filters(symbol)
     db_settings = @repo.get_by!(Settings, symbol: symbol)
 
     Map.merge(
