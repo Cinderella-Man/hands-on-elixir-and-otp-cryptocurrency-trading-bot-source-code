@@ -8,7 +8,7 @@ exchange_client = Application.get_env(:naive, :exchange_client)
 
 Logger.info("Fetching exchange info from Binance to create trading settings")
 
-{:ok, symbols} = exchange_client.fetch_symbols()
+{:ok, %{symbols: symbols}} = exchange_client.get_exchange_info()
 
 %{
   chunks: chunks,
@@ -35,8 +35,7 @@ base_settings = %{
 
 Logger.info("Inserting default settings for symbols")
 
-maps = symbols
-  |> Enum.map(&(%{base_settings | symbol: &1}))
+maps = Enum.map(symbols, &(%{base_settings | symbol: Map.get(&1, "symbol")}))
 
 {count, nil} = Repo.insert_all(Settings, maps)
 

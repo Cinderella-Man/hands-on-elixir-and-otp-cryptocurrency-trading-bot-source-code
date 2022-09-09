@@ -7,7 +7,7 @@ binance_client = Application.get_env(:streamer, :binance_client)
 
 Logger.info("Fetching exchange info from Binance to create streaming settings")
 
-{:ok, symbols} = binance_client.fetch_symbols()
+{:ok, %{symbols: symbols}} = binance_client.get_exchange_info()
 
 timestamp = NaiveDateTime.utc_now()
   |> NaiveDateTime.truncate(:second)
@@ -21,8 +21,7 @@ base_settings = %{
 
 Logger.info("Inserting default settings for symbols")
 
-maps = symbols
-  |> Enum.map(&(%{base_settings | symbol: &1}))
+maps = Enum.map(symbols, &(%{base_settings | symbol: Map.get(&1, "symbol")}))
 
 {count, nil} = Repo.insert_all(Settings, maps)
 

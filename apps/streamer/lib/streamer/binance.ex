@@ -3,7 +3,8 @@ defmodule Streamer.Binance do
 
   require Logger
 
-  @stream_endpoint "wss://stream.binance.com:9443/ws/"
+  # @stream_endpoint "wss://stream.binance.com:9443/ws/"
+  @stream_endpoint "wss://stream.binancefuture.com/ws/"
 
   def start_link(symbol) do
     Logger.info(
