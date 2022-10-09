@@ -2,13 +2,9 @@ defmodule Naive.Strategy do
   alias Core.Struct.TradeEvent
   alias Decimal, as: D
   alias Naive.Schema.Settings
+  alias Naive.Repo
 
   require Logger
-
-  @binance_client Application.compile_env(:naive, :binance_client)
-  @logger Application.compile_env(:core, :logger)
-  @pubsub_client Application.compile_env(:core, :pubsub_client)
-  @repo Application.compile_env(:naive, :repo)
 
   defmodule Position do
     @enforce_keys [
@@ -282,13 +278,13 @@ defmodule Naive.Strategy do
          } = position,
          _settings
        ) do
-    @logger.info(
+    Logger.info(
       "Position (#{symbol}/#{id}): " <>
         "Placing a BUY order @ #{price}, quantity: #{quantity}"
     )
 
     {:ok, %Binance.OrderResponse{} = order} =
-      @binance_client.order_limit_buy(symbol, quantity, price, "GTC")
+      Binance.order_limit_buy(symbol, quantity, price, "GTC")
 
     :ok = broadcast_order(order)
 
@@ -306,13 +302,13 @@ defmodule Naive.Strategy do
          } = position,
          _settings
        ) do
-    @logger.info(
+    Logger.info(
       "Position (#{symbol}/#{id}): The BUY order is now filled. " <>
         "Placing a SELL order @ #{sell_price}, quantity: #{quantity}"
     )
 
     {:ok, %Binance.OrderResponse{} = order} =
-      @binance_client.order_limit_sell(symbol, quantity, sell_price, "GTC")
+      Binance.order_limit_sell(symbol, quantity, sell_price, "GTC")
 
     :ok = broadcast_order(order)
 
@@ -332,10 +328,10 @@ defmodule Naive.Strategy do
          } = position,
          _settings
        ) do
-    @logger.info("Position (#{symbol}/#{id}): The BUY order is now partially filled")
+    Logger.info("Position (#{symbol}/#{id}): The BUY order is now partially filled")
 
     {:ok, %Binance.Order{} = current_buy_order} =
-      @binance_client.get_order(
+      Binance.get_order(
         symbol,
         timestamp,
         order_id
@@ -358,7 +354,7 @@ defmodule Naive.Strategy do
        ) do
     new_position = generate_fresh_position(settings)
 
-    @logger.info("Position (#{symbol}/#{id}): Trade cycle finished")
+    Logger.info("Position (#{symbol}/#{id}): Trade cycle finished")
 
     {:ok, new_position}
   end
@@ -376,10 +372,10 @@ defmodule Naive.Strategy do
          } = position,
          _settings
        ) do
-    @logger.info("Position (#{symbol}/#{id}): The SELL order is now partially filled")
+    Logger.info("Position (#{symbol}/#{id}): The SELL order is now partially filled")
 
     {:ok, %Binance.Order{} = current_sell_order} =
-      @binance_client.get_order(
+      Binance.get_order(
         symbol,
         timestamp,
         order_id
@@ -402,7 +398,7 @@ defmodule Naive.Strategy do
        ) do
     new_position = generate_fresh_position(settings)
 
-    @logger.info("Position (#{symbol}/#{id}): Rebuy triggered. Starting new position")
+    Logger.info("Position (#{symbol}/#{id}): Rebuy triggered. Starting new position")
 
     {:ok, new_position}
   end
@@ -418,7 +414,7 @@ defmodule Naive.Strategy do
   end
 
   defp broadcast_order(%Binance.Order{} = order) do
-    @pubsub_client.broadcast(
+    Phoenix.PubSub.broadcast(
       Core.PubSub,
       "ORDERS:#{order.symbol}",
       order
@@ -440,8 +436,8 @@ defmodule Naive.Strategy do
   end
 
   def fetch_symbol_settings(symbol) do
-    exchange_info = @binance_client.get_exchange_info()
-    db_settings = @repo.get_by!(Settings, symbol: symbol)
+    exchange_info = Binance.get_exchange_info()
+    db_settings = Repo.get_by!(Settings, symbol: symbol)
 
     merge_filters_into_settings(exchange_info, db_settings, symbol)
   end
@@ -484,8 +480,8 @@ defmodule Naive.Strategy do
 
   def update_status(symbol, status)
       when is_binary(symbol) and is_binary(status) do
-    @repo.get_by(Settings, symbol: symbol)
+    Repo.get_by(Settings, symbol: symbol)
     |> Ecto.Changeset.change(%{status: status})
-    |> @repo.update()
+    |> Repo.update()
   end
 end
