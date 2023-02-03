@@ -17,16 +17,19 @@ defmodule Naive.StrategyTest do
       price: "0.800000",
       side: "BUY",
       status: "NEW",
-      symbol: "ABC",
-      # time_in_force: "",
-      # transact_time: "",
-      # type: ""
+      symbol: "ABC"
     }
 
     Binance
     |> stub(
       :order_limit_buy,
       fn("ABC", "50.000", "0.800000", "GTC") -> {:ok, expected_order} end
+    )
+
+    Phoenix.PubSub
+    |> stub(
+      :broadcast,
+      fn(_pubsub, _topic, _message) -> :ok end
     )
 
     settings = %{
@@ -42,15 +45,15 @@ defmodule Naive.StrategyTest do
     }
 
     {{:ok, new_positions}, log} = with_log(fn ->
-    Naive.Strategy.execute(
-      %TradeEvent{
-        price: "1.00000"
-      },
-      [
-        Strategy.generate_fresh_position(settings)
-      ],
-      settings
-    ) end)
+      Naive.Strategy.execute(
+        %TradeEvent{
+          price: "1.00000"
+        },
+        [
+          Strategy.generate_fresh_position(settings)
+        ],
+        settings
+      ) end)
 
     assert (length new_positions) == 1
     assert log =~ "0.8"
