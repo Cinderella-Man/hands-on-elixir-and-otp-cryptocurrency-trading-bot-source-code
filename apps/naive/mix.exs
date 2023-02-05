@@ -40,8 +40,7 @@ defmodule Naive.MixProject do
       {:decimal, "~> 2.0"},
       {:ecto_sql, "~> 3.0"},
       {:ecto_enum, "~> 1.4"},
-      {:mimic, "~> 1.7", only: :test},
-      {:mox, "~> 1.0", only: [:test, :integration]},
+      {:mimic, "~> 1.7", only: [:test, :integration]},
       {:phoenix_pubsub, "~> 2.0"},
       {:postgrex, ">= 0.0.0"}
     ]

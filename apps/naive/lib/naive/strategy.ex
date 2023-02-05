@@ -6,6 +6,8 @@ defmodule Naive.Strategy do
 
   require Logger
 
+  @binance_client Application.compile_env(:naive, :binance_client)
+
   defmodule Position do
     @enforce_keys [
       :id,
@@ -284,7 +286,7 @@ defmodule Naive.Strategy do
     )
 
     {:ok, %Binance.OrderResponse{} = order} =
-      Binance.order_limit_buy(symbol, quantity, price, "GTC")
+      @binance_client.order_limit_buy(symbol, quantity, price, "GTC")
 
     :ok = broadcast_order(order)
 
@@ -308,7 +310,7 @@ defmodule Naive.Strategy do
     )
 
     {:ok, %Binance.OrderResponse{} = order} =
-      Binance.order_limit_sell(symbol, quantity, sell_price, "GTC")
+      @binance_client.order_limit_sell(symbol, quantity, sell_price, "GTC")
 
     :ok = broadcast_order(order)
 
@@ -331,7 +333,7 @@ defmodule Naive.Strategy do
     Logger.info("Position (#{symbol}/#{id}): The BUY order is now partially filled")
 
     {:ok, %Binance.Order{} = current_buy_order} =
-      Binance.get_order(
+      @binance_client.get_order(
         symbol,
         timestamp,
         order_id
@@ -375,7 +377,7 @@ defmodule Naive.Strategy do
     Logger.info("Position (#{symbol}/#{id}): The SELL order is now partially filled")
 
     {:ok, %Binance.Order{} = current_sell_order} =
-      Binance.get_order(
+      @binance_client.get_order(
         symbol,
         timestamp,
         order_id
@@ -436,7 +438,7 @@ defmodule Naive.Strategy do
   end
 
   def fetch_symbol_settings(symbol) do
-    exchange_info = Binance.get_exchange_info()
+    exchange_info = @binance_client.get_exchange_info()
     db_settings = Repo.get_by!(Settings, symbol: symbol)
 
     merge_filters_into_settings(exchange_info, db_settings, symbol)

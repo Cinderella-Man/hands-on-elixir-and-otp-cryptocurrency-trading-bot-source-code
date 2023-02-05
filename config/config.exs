@@ -12,10 +12,6 @@ import Config
 config :binance_mock,
   use_cached_exchange_info: false
 
-config :core,
-  logger: Logger,
-  pubsub_client: Phoenix.PubSub
-
 config :data_warehouse,
   ecto_repos: [DataWarehouse.Repo]
 
@@ -38,7 +34,6 @@ config :streamer, Streamer.Repo,
 config :naive,
   binance_client: BinanceMock,
   ecto_repos: [Naive.Repo],
-  leader: Naive.Leader,
   repo: Naive.Repo,
   trading: %{
     defaults: %{

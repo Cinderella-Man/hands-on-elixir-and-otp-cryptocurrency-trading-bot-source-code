@@ -20,7 +20,7 @@ defmodule Naive.StrategyTest do
       symbol: "ABC"
     }
 
-    Binance
+    BinanceMock
     |> stub(
       :order_limit_buy,
       fn("ABC", "50.000", "0.800000", "GTC") -> {:ok, expected_order} end
