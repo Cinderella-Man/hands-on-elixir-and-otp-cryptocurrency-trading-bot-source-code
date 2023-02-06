@@ -23,13 +23,13 @@ defmodule Naive.StrategyTest do
     BinanceMock
     |> stub(
       :order_limit_buy,
-      fn("ABC", "50.000", "0.800000", "GTC") -> {:ok, expected_order} end
+      fn "ABC", "50.000", "0.800000", "GTC" -> {:ok, expected_order} end
     )
 
     Phoenix.PubSub
     |> stub(
       :broadcast,
-      fn(_pubsub, _topic, _message) -> :ok end
+      fn _pubsub, _topic, _message -> :ok end
     )
 
     settings = %{
@@ -44,18 +44,20 @@ defmodule Naive.StrategyTest do
       status: :on
     }
 
-    {{:ok, new_positions}, log} = with_log(fn ->
-      Naive.Strategy.execute(
-        %TradeEvent{
-          price: "1.00000"
-        },
-        [
-          Strategy.generate_fresh_position(settings)
-        ],
-        settings
-      ) end)
+    {{:ok, new_positions}, log} =
+      with_log(fn ->
+        Naive.Strategy.execute(
+          %TradeEvent{
+            price: "1.00000"
+          },
+          [
+            Strategy.generate_fresh_position(settings)
+          ],
+          settings
+        )
+      end)
 
-    assert (length new_positions) == 1
+    assert length(new_positions) == 1
     assert log =~ "0.8"
 
     %{buy_order: buy_order} = List.first(new_positions)
