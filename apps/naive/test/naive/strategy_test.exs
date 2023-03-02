@@ -57,11 +57,11 @@ defmodule Naive.StrategyTest do
         )
       end)
 
-    assert length(new_positions) == 1
     assert log =~ "0.8"
 
-    %{buy_order: buy_order} = List.first(new_positions)
+    assert length(new_positions) == 1
 
+    %{buy_order: buy_order} = List.first(new_positions)
     assert buy_order == expected_order
   end
 end

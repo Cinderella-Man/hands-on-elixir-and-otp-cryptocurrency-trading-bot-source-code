@@ -1,8 +1,8 @@
 defmodule Naive.Strategy do
   alias Core.Struct.TradeEvent
   alias Decimal, as: D
-  alias Naive.Schema.Settings
   alias Naive.Repo
+  alias Naive.Schema.Settings
 
   require Logger
 

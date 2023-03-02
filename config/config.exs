@@ -34,7 +34,6 @@ config :streamer, Streamer.Repo,
 config :naive,
   binance_client: BinanceMock,
   ecto_repos: [Naive.Repo],
-  repo: Naive.Repo,
   trading: %{
     defaults: %{
       chunks: 5,
