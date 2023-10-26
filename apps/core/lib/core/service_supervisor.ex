@@ -76,7 +76,7 @@ defmodule Core.ServiceSupervisor do
         {:ok, _pid} = DynamicSupervisor.start_child(module, {worker_module, symbol})
 
       pid ->
-        Logger.warn("#{worker_module} worker for #{symbol} already started")
+        Logger.warning("#{worker_module} worker for #{symbol} already started")
         {:ok, _settings} = update_status(symbol, "on", repo, schema)
         {:ok, pid}
     end
@@ -86,7 +86,7 @@ defmodule Core.ServiceSupervisor do
       when is_binary(symbol) do
     case get_pid(worker_module, symbol) do
       nil ->
-        Logger.warn("#{worker_module} worker for #{symbol} already stopped")
+        Logger.warning("#{worker_module} worker for #{symbol} already stopped")
         {:ok, _settings} = update_status(symbol, "off", repo, schema)
 
       pid ->
