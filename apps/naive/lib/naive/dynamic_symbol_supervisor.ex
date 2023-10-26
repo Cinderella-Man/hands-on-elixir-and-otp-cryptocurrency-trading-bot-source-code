@@ -31,7 +31,7 @@ defmodule Naive.DynamicSymbolSupervisor do
         {:ok, _pid} = start_symbol_supervisor(symbol)
 
       pid ->
-        Logger.warn("Trading on #{symbol} already started")
+        Logger.warning("Trading on #{symbol} already started")
         {:ok, _settings} = update_trading_status(symbol, "on")
         {:ok, pid}
     end
@@ -42,7 +42,7 @@ defmodule Naive.DynamicSymbolSupervisor do
 
     case get_pid(symbol) do
       nil ->
-        Logger.warn("Trading on #{symbol} already stopped")
+        Logger.warning("Trading on #{symbol} already stopped")
         {:ok, _settings} = update_trading_status(symbol, "off")
 
       pid ->
@@ -63,7 +63,7 @@ defmodule Naive.DynamicSymbolSupervisor do
 
     case get_pid(symbol) do
       nil ->
-        Logger.warn("Trading on #{symbol} already stopped")
+        Logger.warning("Trading on #{symbol} already stopped")
         {:ok, _settings} = update_trading_status(symbol, "off")
 
       _pid ->

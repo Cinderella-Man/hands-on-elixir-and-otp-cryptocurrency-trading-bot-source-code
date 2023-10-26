@@ -29,7 +29,7 @@ defmodule Streamer.DynamicStreamerSupervisor do
         {:ok, _pid} = start_streamer(symbol)
 
       pid ->
-        Logger.warn("Streaming on #{symbol} already started")
+        Logger.warning("Streaming on #{symbol} already started")
         {:ok, _settings} = update_streaming_status(symbol, "on")
         {:ok, pid}
     end
@@ -38,7 +38,7 @@ defmodule Streamer.DynamicStreamerSupervisor do
   def stop_streaming(symbol) when is_binary(symbol) do
     case get_pid(symbol) do
       nil ->
-        Logger.warn("Streaming on #{symbol} already stopped")
+        Logger.warning("Streaming on #{symbol} already stopped")
         {:ok, _settings} = update_streaming_status(symbol, "off")
 
       pid ->
