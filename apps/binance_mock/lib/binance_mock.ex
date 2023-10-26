@@ -67,7 +67,6 @@ defmodule BinanceMock do
              is_binary(price) and
              (side == "BUY" or side == "SELL") do
     current_timestamp = :os.system_time(:millisecond)
-    client_order_id = :crypto.hash(:md5, "#{order_id}") |> Base.encode16()
 
     %Exchange.Order{
       id: order_id,

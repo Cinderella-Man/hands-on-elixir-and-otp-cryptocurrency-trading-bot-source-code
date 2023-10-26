@@ -3,11 +3,11 @@ require Logger
 alias Streamer.Repo
 alias Streamer.Schema.Settings
 
-binance_client = Application.get_env(:streamer, :binance_client)
+exchange_client = Application.compile_env(:streamer, :exchange_client)
 
 Logger.info("Fetching exchange info from Binance to create streaming settings")
 
-{:ok, %{symbols: symbols}} = binance_client.get_exchange_info()
+{:ok, symbols} = exchange_client.fetch_symbols()
 
 timestamp = NaiveDateTime.utc_now()
   |> NaiveDateTime.truncate(:second)
@@ -22,7 +22,7 @@ base_settings = %{
 Logger.info("Inserting default settings for symbols")
 
 maps = symbols
-  |> Enum.map(&(%{base_settings | symbol: &1["symbol"]}))
+  |> Enum.map(&(%{base_settings | symbol: &1}))
 
 {count, nil} = Repo.insert_all(Settings, maps)
 

@@ -88,7 +88,7 @@ defmodule Naive.Trader do
         )
 
       _ ->
-        Logger.warn("Unable to locate trader process assigned to #{symbol}")
+        Logger.warning("Unable to locate trader process assigned to #{symbol}")
         {:error, :unable_to_locate_trader}
     end
   end

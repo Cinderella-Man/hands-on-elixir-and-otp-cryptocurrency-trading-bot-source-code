@@ -4,11 +4,11 @@ alias Decimal
 alias Naive.Repo
 alias Naive.Schema.Settings
 
-binance_client = Application.get_env(:naive, :binance_client)
+exchange_client = Application.compile_env(:naive, :exchange_client)
 
 Logger.info("Fetching exchange info from Binance to create trading settings")
 
-{:ok, %{symbols: symbols}} = binance_client.get_exchange_info()
+{:ok, symbols} = exchange_client.fetch_symbols()
 
 %{
   chunks: chunks,
@@ -16,7 +16,7 @@ Logger.info("Fetching exchange info from Binance to create trading settings")
   buy_down_interval: buy_down_interval,
   profit_interval: profit_interval,
   rebuy_interval: rebuy_interval
-} = Application.get_env(:naive, :trading).defaults
+} = Application.compile_env(:naive, :trading).defaults
 
 timestamp = NaiveDateTime.utc_now()
   |> NaiveDateTime.truncate(:second)
@@ -36,7 +36,7 @@ base_settings = %{
 Logger.info("Inserting default settings for symbols")
 
 maps = symbols
-  |> Enum.map(&(%{base_settings | symbol: &1["symbol"]}))
+  |> Enum.map(&(%{base_settings | symbol: &1}))
 
 {count, nil} = Repo.insert_all(Settings, maps)
 
