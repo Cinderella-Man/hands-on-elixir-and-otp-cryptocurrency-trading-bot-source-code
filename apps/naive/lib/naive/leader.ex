@@ -64,7 +64,7 @@ defmodule Naive.Leader do
       ) do
     case Enum.find_index(traders, &(&1.pid == trader_pid)) do
       nil ->
-        Logger.warn("Tried to update the state of trader that leader is not aware of")
+        Logger.warning("Tried to update the state of trader that leader is not aware of")
         {:reply, :ok, state}
 
       index ->
@@ -82,7 +82,7 @@ defmodule Naive.Leader do
       ) do
     case Enum.find_index(traders, &(&1.pid == trader_pid)) do
       nil ->
-        Logger.warn("Rebuy triggered by trader that leader is not aware of")
+        Logger.warning("Rebuy triggered by trader that leader is not aware of")
         {:reply, :ok, state}
 
       index ->
@@ -111,7 +111,7 @@ defmodule Naive.Leader do
 
     case Enum.find_index(traders, &(&1.pid == trader_pid)) do
       nil ->
-        Logger.warn(
+        Logger.warning(
           "Tried to restart finished #{symbol} " <>
             "trader that leader is not aware of"
         )
@@ -134,7 +134,7 @@ defmodule Naive.Leader do
 
     case Enum.find_index(traders, &(&1.pid == trader_pid)) do
       nil ->
-        Logger.warn(
+        Logger.warning(
           "Tried to restart #{symbol} trader " <>
             "but failed to find its cached state"
         )
