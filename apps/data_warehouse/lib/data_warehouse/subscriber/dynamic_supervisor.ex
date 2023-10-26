@@ -63,7 +63,7 @@ defmodule DataWarehouse.Subscriber.DynamicSupervisor do
   defp stop_child(args) do
     case Registry.lookup(@registry, args) do
       [{pid, _}] -> DynamicSupervisor.terminate_child(__MODULE__, pid)
-      _ -> Logger.warn("Unable to locate process assigned to #{inspect(args)}")
+      _ -> Logger.warning("Unable to locate process assigned to #{inspect(args)}")
     end
   end
 end
