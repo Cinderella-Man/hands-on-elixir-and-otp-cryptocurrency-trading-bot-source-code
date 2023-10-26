@@ -4,7 +4,7 @@ alias Decimal
 alias Naive.Repo
 alias Naive.Schema.Settings
 
-binance_client = Application.get_env(:naive, :binance_client)
+binance_client = Application.compile_env(:naive, :binance_client)
 
 Logger.info("Fetching exchange info from Binance to create trading settings")
 
@@ -16,7 +16,7 @@ Logger.info("Fetching exchange info from Binance to create trading settings")
   buy_down_interval: buy_down_interval,
   profit_interval: profit_interval,
   rebuy_interval: rebuy_interval
-} = Application.get_env(:naive, :trading).defaults
+} = Application.compile_env(:naive, :trading).defaults
 
 timestamp = NaiveDateTime.utc_now()
   |> NaiveDateTime.truncate(:second)
