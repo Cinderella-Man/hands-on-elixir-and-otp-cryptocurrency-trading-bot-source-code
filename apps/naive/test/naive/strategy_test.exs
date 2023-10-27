@@ -132,6 +132,92 @@ defmodule Naive.StrategyTest do
            ) == :fetch_buy_order
   end
 
+  @tag :unit
+  test "Generating finish position decision" do
+    assert Strategy.generate_decision(
+             %TradeEvent{},
+              generate_position(%{
+                buy_order: %Binance.OrderResponse{
+                  status: "FILLED"
+                },
+               sell_order: %Binance.OrderResponse{
+                 status: "FILLED"
+               }
+             }),
+             :ignored,
+             %{status: "on"}
+           ) == :finished
+  end
+
+  @tag :unit
+  test "Generating exit position decision" do
+    assert Strategy.generate_decision(
+             %TradeEvent{},
+             generate_position(%{
+               buy_order: %Binance.OrderResponse{
+                 status: "FILLED"
+               },
+               sell_order: %Binance.OrderResponse{
+                 status: "FILLED"
+               }
+             }),
+             :ignored,
+             %{status: "shutdown"}
+           ) == :exit
+  end
+
+  @tag :unit
+  test "Generating fetch sell order decision" do
+    assert Strategy.generate_decision(
+             %TradeEvent{
+               seller_order_id: 1234
+             },
+             generate_position(%{
+               sell_order: %Binance.OrderResponse{
+                 order_id: 1234
+               }
+             }),
+             :ignored,
+             :ignored
+           ) == :fetch_sell_order
+  end
+
+  @tag :unit
+  test "Generating rebuy decision" do
+    assert Strategy.generate_decision(
+            %TradeEvent{
+              price: "0.89"
+            },
+            generate_position(%{
+              buy_order: %Binance.OrderResponse{
+                price: "1.00"
+              },
+              rebuy_interval: "10.0",
+              rebuy_notified: false
+            }),
+            [:position],
+            %{status: "on", chunks: 1}
+           ) == :rebuy
+  end
+
+  @tag :unit
+  test "Generating skip rebuy decision" do
+    assert Strategy.generate_decision(
+            %TradeEvent{
+              price: "0.9"
+            },
+            generate_position(%{
+              buy_order: %Binance.OrderResponse{
+                price: "1.00"
+              },
+              rebuy_interval: "10.0",
+              rebuy_notified: false
+            }),
+            [:position],
+            %{status: "on", chunks: 1}
+           ) == :skip
+  end
+
   defp generate_position(data) do
     %{
       id: 1_678_920_020_426,
