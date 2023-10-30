@@ -136,10 +136,10 @@ defmodule Naive.StrategyTest do
   test "Generating finish position decision" do
     assert Strategy.generate_decision(
              %TradeEvent{},
-              generate_position(%{
-                buy_order: %Binance.OrderResponse{
-                  status: "FILLED"
-                },
+             generate_position(%{
+               buy_order: %Binance.OrderResponse{
+                 status: "FILLED"
+               },
                sell_order: %Binance.OrderResponse{
                  status: "FILLED"
                }
@@ -173,6 +173,7 @@ defmodule Naive.StrategyTest do
                seller_order_id: 1234
              },
              generate_position(%{
+               buy_order: %Binance.OrderResponse{},
                sell_order: %Binance.OrderResponse{
                  order_id: 1234
                }
@@ -185,36 +186,54 @@ defmodule Naive.StrategyTest do
   @tag :unit
   test "Generating rebuy decision" do
     assert Strategy.generate_decision(
-            %TradeEvent{
-              price: "0.89"
-            },
-            generate_position(%{
-              buy_order: %Binance.OrderResponse{
-                price: "1.00"
-              },
-              rebuy_interval: "10.0",
-              rebuy_notified: false
-            }),
-            [:position],
-            %{status: "on", chunks: 1}
+             %TradeEvent{
+               price: "0.89"
+             },
+             generate_position(%{
+               buy_order: %Binance.OrderResponse{
+                 price: "1.00"
+               },
+               rebuy_interval: "0.1",
+               rebuy_notified: false
+             }),
+             [:position],
+             %{status: "on", chunks: 2}
            ) == :rebuy
+  end
+
+  @tag :unit
+  test "Generating skip(rebuy) decision because rebuy is already notified" do
+    assert Strategy.generate_decision(
+             %TradeEvent{
+               price: "0.89"
+             },
+             generate_position(%{
+               buy_order: %Binance.OrderResponse{
+                 price: "1.00"
+               },
+               rebuy_interval: "0.1",
+               rebuy_notified: true
+             }),
+             [:position],
+             %{status: "on", chunks: 2}
+           ) == :skip
   end
 
   @tag :unit
   test "Generating skip rebuy decision" do
     assert Strategy.generate_decision(
-            %TradeEvent{
-              price: "0.9"
-            },
-            generate_position(%{
-              buy_order: %Binance.OrderResponse{
-                price: "1.00"
-              },
-              rebuy_interval: "10.0",
-              rebuy_notified: false
-            }),
-            [:position],
-            %{status: "on", chunks: 1}
+             %TradeEvent{
+               price: "0.9"
+             },
+             generate_position(%{
+               buy_order: %Binance.OrderResponse{
+                 price: "1.00"
+               },
+               rebuy_interval: "0.1",
+               rebuy_notified: false
+             }),
+             [:position],
+             %{status: "on", chunks: 1}
            ) == :skip
   end
 
