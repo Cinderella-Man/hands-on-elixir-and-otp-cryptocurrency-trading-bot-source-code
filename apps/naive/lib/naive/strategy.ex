@@ -43,8 +43,23 @@ defmodule Naive.Strategy do
           },
           sell_order: %Binance.OrderResponse{}
         }
-      ) do
+      )
+      when is_number(order_id) do
     :skip
+  end
+
+  def generate_decision(
+        %TradeEvent{
+          buyer_order_id: order_id
+        },
+        %State{
+          buy_order: %Binance.OrderResponse{
+            order_id: order_id
+          }
+        }
+      )
+      when is_number(order_id) do
+    :fetch_buy_order
   end
 
   def generate_decision(
@@ -61,19 +76,6 @@ defmodule Naive.Strategy do
       ) do
     sell_price = calculate_sell_price(buy_price, profit_interval, tick_size)
     {:place_sell_order, sell_price}
-  end
-
-  def generate_decision(
-        %TradeEvent{
-          buyer_order_id: order_id
-        },
-        %State{
-          buy_order: %Binance.OrderResponse{
-            order_id: order_id
-          }
-        }
-      ) do
-    :fetch_buy_order
   end
 
   def generate_decision(
