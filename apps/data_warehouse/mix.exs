@@ -26,6 +26,7 @@ defmodule DataWarehouse.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
+      {:binance, "~> 1.0"},
       {:ecto_sql, "~> 3.0"},
       {:ecto_enum, "~> 1.4"},
       {:phoenix_pubsub, "~> 2.0"},
