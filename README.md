@@ -57,6 +57,9 @@ iex -S mix
 # connect to the Binance and stream into PubSub
 Streamer.start_streaming("xrpusdt")
 
+# to aggregate OHLC data
+Indicator.aggregate_ohlcs("XRPUSDT")
+
 # to store trade_events in db
 DataWarehouse.start_storing("trade_events", "xrpusdt")
 
