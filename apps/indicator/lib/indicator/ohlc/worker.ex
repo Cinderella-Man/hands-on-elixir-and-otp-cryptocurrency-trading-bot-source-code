@@ -5,9 +5,6 @@ defmodule Indicator.Ohlc.Worker do
 
   alias Core.Struct.TradeEvent
 
-  @logger Application.compile_env(:core, :logger)
-  @pubsub_client Application.compile_env(:core, :pubsub_client)
-
   def start_link(symbol) do
     GenServer.start_link(__MODULE__, symbol)
   end
@@ -15,9 +12,9 @@ defmodule Indicator.Ohlc.Worker do
   def init(symbol) do
     symbol = String.upcase(symbol)
 
-    @logger.info("Initializing a new OHLC worker for #{symbol}")
+    Logger.info("Initializing a new OHLC worker for #{symbol}")
 
-    @pubsub_client.subscribe(
+    Phoenix.PubSub.subscribe(
       Core.PubSub,
       "TRADE_EVENTS:#{symbol}"
     )
