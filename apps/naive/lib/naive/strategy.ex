@@ -37,10 +37,11 @@ defmodule Naive.Strategy do
           buyer_order_id: order_id
         },
         %State{
-          buy_order: %Binance.OrderResponse{
-            order_id: order_id,
-            status: "FILLED"
-          },
+          buy_order:
+            %Binance.OrderResponse{
+              order_id: order_id,
+              status: "FILLED"
+            },
           sell_order: %Binance.OrderResponse{}
         }
       )
@@ -55,7 +56,8 @@ defmodule Naive.Strategy do
         %State{
           buy_order: %Binance.OrderResponse{
             order_id: order_id
-          }
+          },
+          sell_order: nil
         }
       )
       when is_number(order_id) do
