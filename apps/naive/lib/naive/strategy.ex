@@ -127,7 +127,8 @@ defmodule Naive.Strategy do
         %Position{
           buy_order: %Binance.OrderResponse{
             order_id: order_id
-          }
+          },
+          sell_order: nil
         },
         _positions,
         _settings
