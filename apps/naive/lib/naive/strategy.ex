@@ -107,11 +107,10 @@ defmodule Naive.Strategy do
           buyer_order_id: order_id
         },
         %Position{
-          buy_order:
-            %Binance.OrderResponse{
-              order_id: order_id,
-              status: "FILLED"
-            },
+          buy_order: %Binance.OrderResponse{
+            order_id: order_id,
+            status: "FILLED"
+          },
           sell_order: %Binance.OrderResponse{}
         },
         _positions,
