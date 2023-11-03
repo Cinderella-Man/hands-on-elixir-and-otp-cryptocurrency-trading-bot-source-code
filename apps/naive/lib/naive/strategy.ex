@@ -131,7 +131,8 @@ defmodule Naive.Strategy do
         %Position{
           buy_order: %Exchange.Order{
             id: order_id
-          }
+          },
+          sell_order: nil
         },
         _positions,
         _settings
