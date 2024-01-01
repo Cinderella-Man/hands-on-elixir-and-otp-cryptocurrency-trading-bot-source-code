@@ -1,6 +1,5 @@
 require Logger
 
-alias Decimal
 alias Naive.Repo
 alias Naive.Schema.Settings
 
