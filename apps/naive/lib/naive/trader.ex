@@ -52,8 +52,7 @@ defmodule Naive.Trader do
 
   def handle_cast(
         %TradeEvent{
-          price: trade_price,
-          quantity: quantity
+          price: trade_price
         },
         %State{
           symbol: symbol,
@@ -61,6 +60,7 @@ defmodule Naive.Trader do
             price: buy_price,
             orig_qty: quantity
           },
+          sell_order: nil,
           profit_interval: profit_interval,
           tick_size: tick_size
         } = state
@@ -80,13 +80,11 @@ defmodule Naive.Trader do
 
   def handle_cast(
         %TradeEvent{
-          price: trade_price,
-          quantity: quantity
+          price: trade_price
         },
         %State{
           sell_order: %Binance.OrderResponse{
-            price: sell_price,
-            orig_qty: quantity
+            price: sell_price
           }
         } = state
       ) when trade_price > sell_price do
