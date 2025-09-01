@@ -18,7 +18,7 @@ defmodule Hedgehog.MixProject do
         "ecto.drop",
         "ecto.create",
         "ecto.migrate",
-        "cmd --app naive --app streamer mix seed"
+        "do --app naive --app streamer cmd mix seed"
       ],
       "test.integration": [
         "setup",
