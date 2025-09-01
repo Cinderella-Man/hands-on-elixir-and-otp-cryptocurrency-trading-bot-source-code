@@ -94,12 +94,15 @@ defmodule Naive.Trader do
             %Binance.OrderResponse{
               price: buy_price,
               orig_qty: quantity
-            },
+            } = buy_order,
           sell_order: nil,
           profit_interval: profit_interval,
           tick_size: tick_size
         } = state
-  ) when trade_price < buy_price do
+      )
+      when trade_price < buy_price do
+    :ok = broadcast_order(%{buy_order | status: "FILLED"})
+
     sell_price = calculate_sell_price(buy_price, profit_interval, tick_size)
 
     Logger.info(
@@ -127,9 +130,11 @@ defmodule Naive.Trader do
           sell_order:
             %Binance.OrderResponse{
               price: sell_price
-            }
+            } = sell_order
         } = state
-  ) when trade_price > sell_price do
+      )
+      when trade_price > sell_price do
+    :ok = broadcast_order(%{sell_order | status: "FILLED"})
     Logger.info("Trader(#{id}) finished trade cycle for #{symbol}")
     {:stop, :normal, state}
   end
