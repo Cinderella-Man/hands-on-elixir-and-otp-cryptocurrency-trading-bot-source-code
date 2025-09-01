@@ -71,7 +71,8 @@ defmodule Naive.Trader do
           profit_interval: profit_interval,
           tick_size: tick_size
         } = state
-  ) when trade_price < buy_price do
+      )
+      when trade_price < buy_price do
     sell_price = calculate_sell_price(buy_price, profit_interval, tick_size)
 
     Logger.info(
@@ -94,7 +95,8 @@ defmodule Naive.Trader do
             price: sell_price
           }
         } = state
-  ) when trade_price > sell_price do
+      )
+      when trade_price > sell_price do
     Logger.info("Trade finished, trader will now exit")
     {:stop, :normal, state}
   end
