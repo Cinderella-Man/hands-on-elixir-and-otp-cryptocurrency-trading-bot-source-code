@@ -101,7 +101,9 @@ defmodule Naive.Trader do
         } = state
       )
       when trade_price < buy_price do
-    :ok = broadcast_order(%{buy_order | status: "FILLED"})
+    updated_buy_order = %{buy_order | status: "FILLED"}
+
+    :ok = broadcast_order(updated_buy_order)
 
     sell_price = calculate_sell_price(buy_price, profit_interval, tick_size)
 
@@ -115,7 +117,7 @@ defmodule Naive.Trader do
 
     :ok = broadcast_order(order)
 
-    new_state = %{state | sell_order: order}
+    new_state = %{state | buy_order: updated_buy_order, sell_order: order}
     Naive.Leader.notify(:trader_state_updated, new_state)
     {:noreply, new_state}
   end
