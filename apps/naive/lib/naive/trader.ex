@@ -80,13 +80,15 @@ defmodule Naive.Trader do
           buy_order: %Binance.OrderResponse{
             price: buy_price,
             orig_qty: quantity
-          },
+          } = buy_order,
           sell_order: nil,
           profit_interval: profit_interval,
           tick_size: tick_size
         } = state
       )
       when trade_price < buy_price do
+    updated_buy_order = %{buy_order | status: "FILLED"}
+
     sell_price = calculate_sell_price(buy_price, profit_interval, tick_size)
 
     Logger.info(
@@ -97,7 +99,7 @@ defmodule Naive.Trader do
     {:ok, %Binance.OrderResponse{} = order} =
       @binance_client.order_limit_sell(symbol, quantity, sell_price, "GTC")
 
-    new_state = %{state | sell_order: order}
+    new_state = %{state | buy_order: updated_buy_order, sell_order: order}
     Naive.Leader.notify(:trader_state_updated, new_state)
     {:noreply, new_state}
   end
