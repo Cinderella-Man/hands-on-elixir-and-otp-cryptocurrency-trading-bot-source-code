@@ -33,37 +33,6 @@ defmodule Naive.Strategy do
   end
 
   def generate_decision(
-        %TradeEvent{
-          buyer_order_id: order_id
-        },
-        %State{
-          buy_order: %Binance.OrderResponse{
-            order_id: order_id,
-            status: "FILLED"
-          },
-          sell_order: %Binance.OrderResponse{}
-        }
-      )
-      when is_number(order_id) do
-    :skip
-  end
-
-  def generate_decision(
-        %TradeEvent{
-          buyer_order_id: order_id
-        },
-        %State{
-          buy_order: %Binance.OrderResponse{
-            order_id: order_id
-          },
-          sell_order: nil
-        }
-      )
-      when is_number(order_id) do
-    :fetch_buy_order
-  end
-
-  def generate_decision(
         %TradeEvent{},
         %State{
           buy_order: %Binance.OrderResponse{
@@ -80,6 +49,21 @@ defmodule Naive.Strategy do
   end
 
   def generate_decision(
+        %TradeEvent{
+          price: trade_price
+        },
+        %State{
+          buy_order: %Binance.OrderResponse{
+            price: buy_price
+          },
+          sell_order: nil
+        }
+      )
+      when trade_price < buy_price do
+    :mark_buy_order_as_filled
+  end
+
+  def generate_decision(
         %TradeEvent{},
         %State{
           sell_order: %Binance.OrderResponse{
@@ -92,15 +76,16 @@ defmodule Naive.Strategy do
 
   def generate_decision(
         %TradeEvent{
-          seller_order_id: order_id
+          price: trade_price
         },
         %State{
           sell_order: %Binance.OrderResponse{
-            order_id: order_id
+            price: sell_price
           }
         }
-      ) do
-    :fetch_sell_order
+      )
+      when trade_price > sell_price do
+    :mark_sell_order_as_filled
   end
 
   def generate_decision(
@@ -235,29 +220,19 @@ defmodule Naive.Strategy do
   end
 
   defp execute_decision(
-         :fetch_buy_order,
+         :mark_buy_order_as_filled,
          %State{
            id: id,
            symbol: symbol,
-           buy_order:
-             %Binance.OrderResponse{
-               order_id: order_id,
-               transact_time: timestamp
-             } = buy_order
+           buy_order: %Binance.OrderResponse{} = buy_order,
+           sell_order: nil
          } = state
        ) do
-    @logger.info("Trader's(#{id} #{symbol} buy order got partially filled")
+    @logger.info("Trader's(#{id} #{symbol} buy order got filled")
 
-    {:ok, %Binance.Order{} = current_buy_order} =
-      @binance_client.get_order(
-        symbol,
-        timestamp,
-        order_id
-      )
+    buy_order = %{buy_order | status: "FILLED"}
 
-    :ok = broadcast_order(current_buy_order)
-
-    buy_order = %{buy_order | status: current_buy_order.status}
+    :ok = broadcast_order(buy_order)
 
     new_state = %{state | buy_order: buy_order}
     @leader.notify(:trader_state_updated, new_state)
@@ -276,29 +251,18 @@ defmodule Naive.Strategy do
   end
 
   defp execute_decision(
-         :fetch_sell_order,
+         :mark_sell_order_as_filled,
          %State{
            id: id,
            symbol: symbol,
-           sell_order:
-             %Binance.OrderResponse{
-               order_id: order_id,
-               transact_time: timestamp
-             } = sell_order
+           sell_order: %Binance.OrderResponse{} = sell_order
          } = state
        ) do
-    @logger.info("Trader's(#{id} #{symbol} SELL order got partially filled")
+    @logger.info("Trader's(#{id} #{symbol} SELL order got filled")
 
-    {:ok, %Binance.Order{} = current_sell_order} =
-      @binance_client.get_order(
-        symbol,
-        timestamp,
-        order_id
-      )
+    sell_order = %{sell_order | status: "FILLED"}
 
-    :ok = broadcast_order(current_sell_order)
-
-    sell_order = %{sell_order | status: current_sell_order.status}
+    :ok = broadcast_order(sell_order)
 
     new_state = %{state | sell_order: sell_order}
     @leader.notify(:trader_state_updated, new_state)
