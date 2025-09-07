@@ -69,8 +69,6 @@ defmodule Naive.TraderTest do
       trade_id: 2_000 + id * 10,
       price: price,
       quantity: quantity,
-      buyer_order_id: 3_000 + id * 10,
-      seller_order_id: 4_000 + id * 10,
       trade_time: 5_000 + id * 10,
       buyer_market_maker: false
     }
