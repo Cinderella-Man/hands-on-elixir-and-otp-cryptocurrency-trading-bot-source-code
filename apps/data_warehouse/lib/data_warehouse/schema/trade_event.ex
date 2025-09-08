@@ -10,8 +10,6 @@ defmodule DataWarehouse.Schema.TradeEvent do
     field(:trade_id, :integer)
     field(:price, :string)
     field(:quantity, :string)
-    field(:buyer_order_id, :integer)
-    field(:seller_order_id, :integer)
     field(:trade_time, :integer)
     field(:buyer_market_maker, :boolean)
 
