@@ -10,11 +10,11 @@ defmodule Naive.StrategyTest do
   @tag :unit
   test "Strategy places a buy order" do
     expected_order = %Binance.OrderResponse{
-      client_order_id: "1",
-      executed_qty: "0.000",
+      client_order_id: 1,
+      executed_qty: 0.000,
       order_id: "x1",
-      orig_qty: "50.000",
-      price: "0.800000",
+      orig_qty: 50.000,
+      price: 0.800000,
       side: "BUY",
       status: "NEW",
       symbol: "ABC"
@@ -23,7 +23,7 @@ defmodule Naive.StrategyTest do
     BinanceMock
     |> stub(
       :order_limit_buy,
-      fn "ABC", "50.000", "0.800000", "GTC" -> {:ok, expected_order} end
+      fn "ABC", 50.000, 0.800000, "GTC" -> {:ok, expected_order} end
     )
 
     Phoenix.PubSub
@@ -34,13 +34,13 @@ defmodule Naive.StrategyTest do
 
     settings = %{
       symbol: "ABC",
-      chunks: "5",
-      budget: "200",
-      buy_down_interval: "0.2",
-      profit_interval: "0.1",
-      rebuy_interval: "0.5",
-      tick_size: "0.000001",
-      step_size: "0.001",
+      chunks: 5,
+      budget: 200,
+      buy_down_interval: 0.2,
+      profit_interval: 0.1,
+      rebuy_interval: 0.5,
+      tick_size: 0.000001,
+      step_size: 0.001,
       status: :on
     }
 
@@ -48,7 +48,7 @@ defmodule Naive.StrategyTest do
       with_log(fn ->
         Naive.Strategy.execute(
           %TradeEvent{
-            price: "1.00000"
+            price: 1.00000
           },
           [
             Strategy.generate_fresh_position(settings)
@@ -69,33 +69,15 @@ defmodule Naive.StrategyTest do
   test "Generating place buy order decision" do
     assert Strategy.generate_decision(
              %TradeEvent{
-               price: "1.0"
+               price: 1.0
              },
              generate_position(%{
-               budget: "10.0",
-               buy_down_interval: "0.01"
+               budget: 10.0,
+               buy_down_interval: 0.01
              }),
              :ignored,
              :ignored
-           ) == {:place_buy_order, "0.99000000", "10.00000000"}
-  end
-
-  @tag :unit
-  test "Generating skip decision as buy and sell already placed(race condition occurred)" do
-    assert Strategy.generate_decision(
-             %TradeEvent{
-               buyer_order_id: 123
-             },
-             generate_position(%{
-               buy_order: %Binance.OrderResponse{
-                 order_id: 123,
-                 status: "FILLED"
-               },
-               sell_order: %Binance.OrderResponse{}
-             }),
-             :ignored,
-             :ignored
-           ) == :skip
+           ) == {:place_buy_order, 0.99000000, 10.00000000}
   end
 
   @tag :unit
@@ -117,19 +99,19 @@ defmodule Naive.StrategyTest do
   end
 
   @tag :unit
-  test "Generating fetch buy order decision" do
+  test "Generating mark buy order as filled decision" do
     assert Strategy.generate_decision(
              %TradeEvent{
-               buyer_order_id: 1234
+               price: 1.01
              },
              generate_position(%{
                buy_order: %Binance.OrderResponse{
-                 order_id: 1234
+                 price: 1.02
                }
              }),
              :ignored,
              :ignored
-           ) == :fetch_buy_order
+           ) == :mark_buy_order_as_filled
   end
 
   @tag :unit
@@ -167,33 +149,33 @@ defmodule Naive.StrategyTest do
   end
 
   @tag :unit
-  test "Generating fetch sell order decision" do
+  test "Generating mark sell order as filled decision" do
     assert Strategy.generate_decision(
              %TradeEvent{
-               seller_order_id: 1234
+               price: 1.02
              },
              generate_position(%{
                buy_order: %Binance.OrderResponse{},
                sell_order: %Binance.OrderResponse{
-                 order_id: 1234
+                 price: 1.01
                }
              }),
              :ignored,
              :ignored
-           ) == :fetch_sell_order
+           ) == :mark_sell_order_as_filled
   end
 
   @tag :unit
   test "Generating rebuy decision" do
     assert Strategy.generate_decision(
              %TradeEvent{
-               price: "0.89"
+               price: 0.89
              },
              generate_position(%{
                buy_order: %Binance.OrderResponse{
-                 price: "1.00"
+                 price: 1.00
                },
-               rebuy_interval: "0.1",
+               rebuy_interval: 0.1,
                rebuy_notified: false
              }),
              [:position],
@@ -205,13 +187,13 @@ defmodule Naive.StrategyTest do
   test "Generating skip(rebuy) decision because rebuy is already notified" do
     assert Strategy.generate_decision(
              %TradeEvent{
-               price: "0.89"
+               price: 0.89
              },
              generate_position(%{
                buy_order: %Binance.OrderResponse{
-                 price: "1.00"
+                 price: 1.00
                },
-               rebuy_interval: "0.1",
+               rebuy_interval: 0.1,
                rebuy_notified: true
              }),
              [:position],
@@ -223,11 +205,11 @@ defmodule Naive.StrategyTest do
   test "Generating skip rebuy decision" do
     assert Strategy.generate_decision(
              %TradeEvent{
-               price: "0.9"
+               price: 0.9
              },
              generate_position(%{
                buy_order: %Binance.OrderResponse{
-                 price: "1.00"
+                 price: 1.00
                },
                rebuy_interval: "0.1",
                rebuy_notified: false
@@ -241,15 +223,15 @@ defmodule Naive.StrategyTest do
     %{
       id: 1_678_920_020_426,
       symbol: "XRPUSDT",
-      profit_interval: "0.005",
-      rebuy_interval: "0.01",
+      profit_interval: 0.005,
+      rebuy_interval: 0.01,
       rebuy_notified: false,
-      budget: "10.0",
+      budget: 10.0,
       buy_order: nil,
       sell_order: nil,
-      buy_down_interval: "0.01",
-      tick_size: "0.00010000",
-      step_size: "1.00000000"
+      buy_down_interval: 0.01,
+      tick_size: 0.00010000,
+      step_size: 1.00000000
     }
     |> Map.merge(data)
     |> then(&struct(Strategy.Position, &1))
