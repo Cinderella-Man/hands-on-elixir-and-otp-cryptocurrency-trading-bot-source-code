@@ -25,12 +25,14 @@ defmodule Streamer.Binance do
   end
 
   defp process_event(%{"e" => "trade"} = event) do
+    {trade_price, ""} = Float.parse(event["p"])
+
     trade_event = %Streamer.Binance.TradeEvent{
       :event_type => event["e"],
       :event_time => event["E"],
       :symbol => event["s"],
       :trade_id => event["t"],
-      :price => event["p"],
+      :price => trade_price,
       :quantity => event["q"],
       :trade_time => event["T"],
       :buyer_market_maker => event["m"]
