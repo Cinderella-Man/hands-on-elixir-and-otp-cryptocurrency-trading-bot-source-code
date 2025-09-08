@@ -7,7 +7,7 @@ defmodule DataWarehouse.Repo.Migrations.CreateTradeEvents do
       add(:event_type, :text)
       add(:event_time, :bigint)
       add(:symbol, :text)
-      add(:trade_id, :integer)
+      add(:trade_id, :bigint)
       add(:price, :text)
       add(:quantity, :text)
       add(:trade_time, :bigint)
