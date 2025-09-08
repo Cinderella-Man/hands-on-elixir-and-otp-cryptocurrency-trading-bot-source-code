@@ -36,8 +36,6 @@ defmodule Hedgehog.Streamer.Binance.Worker do
       :trade_id => event["t"],
       :price => event["p"],
       :quantity => event["q"],
-      :buyer_order_id => event["b"],
-      :seller_order_id => event["a"],
       :trade_time => event["T"],
       :buyer_market_maker => event["m"]
     }
