@@ -63,10 +63,11 @@ defmodule Naive.Trader do
         },
         %State{
           symbol: symbol,
-          buy_order: %Binance.OrderResponse{
-            price: buy_price,
-            orig_qty: quantity
-          } = buy_order,
+          buy_order:
+            %Binance.OrderResponse{
+              price: buy_price,
+              orig_qty: quantity
+            } = buy_order,
           sell_order: nil,
           profit_interval: profit_interval,
           tick_size: tick_size
@@ -109,7 +110,8 @@ defmodule Naive.Trader do
 
   defp calculate_sell_price(buy_price, profit_interval, tick_size) do
     fee = "1.001"
-    original_price = D.mult(buy_price, fee)
+
+    original_price = D.mult(D.from_float(buy_price), fee)
 
     net_target_price =
       D.mult(
@@ -119,12 +121,11 @@ defmodule Naive.Trader do
 
     gross_target_price = D.mult(net_target_price, fee)
 
-    D.to_string(
+    D.to_float(
       D.mult(
         D.div_int(gross_target_price, tick_size),
         tick_size
-      ),
-      :normal
+      )
     )
   end
 
