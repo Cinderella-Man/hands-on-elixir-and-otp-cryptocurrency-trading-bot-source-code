@@ -309,25 +309,15 @@ defmodule Naive.Strategy do
            id: id,
            symbol: symbol,
            buy_order:
-             %Binance.OrderResponse{
-               order_id: order_id,
-               transact_time: timestamp
-             } = buy_order
+             %Binance.OrderResponse{} = buy_order
          } = position,
          _settings
        ) do
     Logger.info("Position (#{symbol}/#{id}): The BUY order is now filled")
 
-    {:ok, %Binance.Order{} = current_buy_order} =
-      @binance_client.get_order(
-        symbol,
-        timestamp,
-        order_id
-      )
+    buy_order = %{buy_order | status: "FILLED"}
 
-    :ok = broadcast_order(current_buy_order)
-
-    buy_order = %{buy_order | status: current_buy_order.status}
+    :ok = broadcast_order(buy_order)
 
     {:ok, %{position | buy_order: buy_order}}
   end
@@ -353,25 +343,15 @@ defmodule Naive.Strategy do
            id: id,
            symbol: symbol,
            sell_order:
-             %Binance.OrderResponse{
-               order_id: order_id,
-               transact_time: timestamp
-             } = sell_order
+             %Binance.OrderResponse{} = sell_order
          } = position,
          _settings
        ) do
     Logger.info("Position (#{symbol}/#{id}): The SELL order is now filled")
 
-    {:ok, %Binance.Order{} = current_sell_order} =
-      @binance_client.get_order(
-        symbol,
-        timestamp,
-        order_id
-      )
+    sell_order = %{sell_order | status: "FILLED"}
 
-    :ok = broadcast_order(current_sell_order)
-
-    sell_order = %{sell_order | status: current_sell_order.status}
+    :ok = broadcast_order(sell_order)
 
     {:ok, %{position | sell_order: sell_order}}
   end
