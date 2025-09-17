@@ -105,14 +105,16 @@ defmodule BinanceMock do
         %OrderBook{}
       )
 
+    trade_price = D.from_float(trade_event.price)
+
     filled_buy_orders =
       order_book.buy_side
-      |> Enum.take_while(&D.lt?(trade_event.price, &1.price))
+      |> Enum.take_while(&D.lt?(trade_price, D.from_float(&1.price)))
       |> Enum.map(&Map.replace!(&1, :status, "FILLED"))
 
     filled_sell_orders =
       order_book.sell_side
-      |> Enum.take_while(&D.gt?(trade_event.price, &1.price))
+      |> Enum.take_while(&D.gt?(trade_price, D.from_float(&1.price)))
       |> Enum.map(&Map.replace!(&1, :status, "FILLED"))
 
     remaining_buy_orders =
@@ -212,7 +214,7 @@ defmodule BinanceMock do
   defp generate_fake_order(symbol, quantity, price, side)
        when is_binary(symbol) and
               is_binary(quantity) and
-              is_binary(price) and
+              is_number(price) and
               (side == "BUY" or side == "SELL") do
     current_timestamp = :os.system_time(:millisecond)
     order_id = GenServer.call(__MODULE__, :generate_id)
