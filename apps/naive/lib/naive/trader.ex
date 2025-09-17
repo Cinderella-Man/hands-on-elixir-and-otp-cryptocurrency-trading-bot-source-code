@@ -66,15 +66,24 @@ defmodule Naive.Trader do
           buy_order:
             %Binance.OrderResponse{
               price: buy_price,
-              orig_qty: quantity
-            } = buy_order,
+              order_id: order_id,
+              orig_qty: quantity,
+              transact_time: timestamp
+            },
           sell_order: nil,
           profit_interval: profit_interval,
           tick_size: tick_size
         } = state
       )
       when trade_price < buy_price do
-    updated_buy_order = %{buy_order | status: "FILLED"}
+    {:ok, %Binance.Order{} = current_buy_order} =
+      @binance_client.get_order(
+        symbol,
+        timestamp,
+        order_id
+      )
+
+    buy_order_response = convert_order_to_order_response(current_buy_order)
 
     sell_price = calculate_sell_price(buy_price, profit_interval, tick_size)
 
@@ -86,7 +95,7 @@ defmodule Naive.Trader do
     {:ok, %Binance.OrderResponse{} = order} =
       @binance_client.order_limit_sell(symbol, quantity, sell_price, "GTC")
 
-    {:noreply, %{state | buy_order: updated_buy_order, sell_order: order}}
+    {:noreply, %{state | buy_order: buy_order_response, sell_order: order}}
   end
 
   def handle_info(
@@ -94,14 +103,26 @@ defmodule Naive.Trader do
           price: trade_price
         },
         %State{
+          symbol: symbol,
           sell_order: %Binance.OrderResponse{
-            price: sell_price
+            price: sell_price,
+            order_id: order_id,
+            transact_time: timestamp
           }
         } = state
       )
       when trade_price > sell_price do
+    {:ok, %Binance.Order{} = current_sell_order} =
+      @binance_client.get_order(
+        symbol,
+        timestamp,
+        order_id
+      )
+
+    sell_order_response = convert_order_to_order_response(current_sell_order)
+
     Logger.info("Trade finished, trader will now exit")
-    {:stop, :normal, state}
+    {:stop, :normal, %{state | sell_order: sell_order_response}}
   end
 
   def handle_info(%TradeEvent{}, state) do
@@ -137,5 +158,15 @@ defmodule Naive.Trader do
     |> Map.get("filters")
     |> Enum.find(&(&1["filterType"] == "PRICE_FILTER"))
     |> Map.get("tickSize")
+  end
+
+  defp convert_order_to_order_response(%Binance.Order{} = order) do
+    %{
+      struct(
+        Binance.OrderResponse,
+        order |> Map.to_list()
+      )
+      | transact_time: order.time
+    }
   end
 end
