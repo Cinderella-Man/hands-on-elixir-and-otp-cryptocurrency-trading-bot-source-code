@@ -7,7 +7,7 @@ defmodule BinanceMock do
   require Logger
 
   defmodule State do
-    defstruct order_books: %{}, subscriptions: [], fake_order_id: 1
+    defstruct order_books: %{}, subscriptions: [], next_order_id: 1
   end
 
   defmodule OrderBook do
@@ -64,9 +64,9 @@ defmodule BinanceMock do
   def handle_call(
         :generate_id,
         _from,
-        %State{fake_order_id: id} = state
+        %State{next_order_id: id} = state
       ) do
-    {:reply, id + 1, %{state | fake_order_id: id + 1}}
+    {:reply, id, %{state | next_order_id: id + 1}}
   end
 
   def handle_call(
