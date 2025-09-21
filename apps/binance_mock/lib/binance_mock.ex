@@ -81,17 +81,18 @@ defmodule BinanceMock do
         %OrderBook{}
       )
 
-    result =
-      (order_book.buy_side ++
-         order_book.sell_side ++
-         order_book.historical)
-      |> Enum.find(
-        &(&1.symbol == symbol and
-            &1.time == time and
-            &1.order_id == order_id)
-      )
-
-    {:reply, {:ok, result}, state}
+    (order_book.buy_side ++
+       order_book.sell_side ++
+       order_book.historical)
+    |> Enum.find(
+      &(&1.symbol == symbol and
+          &1.time == time and
+          &1.order_id == order_id)
+    )
+    |> case do
+      %Binance.Order{} = order -> {:reply, {:ok, order}, state}
+      _ -> {:reply, {:error, :not_found}, state}
+    end
   end
 
   def handle_info(

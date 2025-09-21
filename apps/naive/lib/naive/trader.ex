@@ -63,13 +63,12 @@ defmodule Naive.Trader do
         },
         %State{
           symbol: symbol,
-          buy_order:
-            %Binance.OrderResponse{
-              price: buy_price,
-              order_id: order_id,
-              orig_qty: quantity,
-              transact_time: timestamp
-            },
+          buy_order: %Binance.OrderResponse{
+            price: buy_price,
+            order_id: order_id,
+            orig_qty: quantity,
+            transact_time: timestamp
+          },
           sell_order: nil,
           profit_interval: profit_interval,
           tick_size: tick_size
