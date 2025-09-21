@@ -185,31 +185,25 @@ defmodule BinanceMock do
          %Binance.Order{symbol: symbol} = order,
          order_books
        ) do
-    order_book =
-      Map.get(
-        order_books,
-        :"#{symbol}",
-        %OrderBook{}
-      )
+    order_book = Map.get(order_books, :"#{symbol}", %OrderBook{})
 
     order_book =
       if order.side == "SELL" do
-        Map.replace!(
-          order_book,
-          :sell_side,
-          [order | order_book.sell_side]
-          |> Enum.sort(&D.lt?(&1.price, &2.price))
-        )
+        # Sell orders are sorted ascending (lowest price first)
+        updated_sell_side = insert_sorted(order, order_book.sell_side, &D.lt?/2)
+        %{order_book | sell_side: updated_sell_side}
       else
-        Map.replace!(
-          order_book,
-          :buy_side,
-          [order | order_book.buy_side]
-          |> Enum.sort(&D.gt?(&1.price, &2.price))
-        )
+        # Buy orders are sorted descending (highest price first)
+        updated_buy_side = insert_sorted(order, order_book.buy_side, &D.gt?/2)
+        %{order_book | buy_side: updated_buy_side}
       end
 
     Map.put(order_books, :"#{symbol}", order_book)
+  end
+
+  defp insert_sorted(order, orders, sorter) do
+    {left, right} = Enum.split_while(orders, &sorter.(&1.price, order.price))
+    left ++ [order | right]
   end
 
   defp generate_fake_order(symbol, quantity, price, side)
