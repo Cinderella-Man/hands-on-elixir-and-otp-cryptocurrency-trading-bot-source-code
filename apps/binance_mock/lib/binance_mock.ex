@@ -110,12 +110,12 @@ defmodule BinanceMock do
 
     filled_buy_orders =
       order_book.buy_side
-      |> Enum.take_while(&D.lt?(trade_price, D.from_float(&1.price)))
+      |> Enum.take_while(&D.lte?(trade_price, D.from_float(&1.price)))
       |> Enum.map(&Map.replace!(&1, :status, "FILLED"))
 
     filled_sell_orders =
       order_book.sell_side
-      |> Enum.take_while(&D.gt?(trade_price, D.from_float(&1.price)))
+      |> Enum.take_while(&D.gte?(trade_price, D.from_float(&1.price)))
       |> Enum.map(&Map.replace!(&1, :status, "FILLED"))
 
     remaining_buy_orders =
