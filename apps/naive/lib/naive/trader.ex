@@ -74,7 +74,7 @@ defmodule Naive.Trader do
           tick_size: tick_size
         } = state
       )
-      when trade_price < buy_price do
+      when trade_price <= buy_price do
     {:ok, %Binance.Order{} = current_buy_order} =
       @binance_client.get_order(
         symbol,
@@ -110,7 +110,7 @@ defmodule Naive.Trader do
           }
         } = state
       )
-      when trade_price > sell_price do
+      when trade_price >= sell_price do
     {:ok, %Binance.Order{} = current_sell_order} =
       @binance_client.get_order(
         symbol,
