@@ -7,12 +7,12 @@ defmodule Naive.Trader do
   require Logger
 
   defmodule State do
-    @enforce_keys [:symbol, :profit_interval, :tick_size]
+    @enforce_keys [:symbol, :profit_target, :tick_size]
     defstruct [
       :symbol,
       :buy_order,
       :sell_order,
-      :profit_interval,
+      :profit_target,
       :tick_size
     ]
   end
@@ -21,7 +21,7 @@ defmodule Naive.Trader do
     GenServer.start_link(__MODULE__, args, name: :trader)
   end
 
-  def init(%{symbol: symbol, profit_interval: profit_interval}) do
+  def init(%{symbol: symbol, profit_target: profit_target}) do
     symbol = String.upcase(symbol)
 
     Logger.info("Initializing new trader for #{symbol}")
@@ -36,7 +36,7 @@ defmodule Naive.Trader do
     {:ok,
      %State{
        symbol: symbol,
-       profit_interval: profit_interval,
+       profit_target: profit_target,
        tick_size: tick_size
      }}
   end
@@ -68,7 +68,7 @@ defmodule Naive.Trader do
             transact_time: timestamp
           },
           sell_order: nil,
-          profit_interval: profit_interval,
+          profit_target: profit_target,
           tick_size: tick_size
         } = state
       )
@@ -82,7 +82,7 @@ defmodule Naive.Trader do
 
     buy_order_response = convert_order_to_order_response(current_buy_order)
 
-    sell_price = calculate_sell_price(buy_price, profit_interval, tick_size)
+    sell_price = calculate_sell_price(buy_price, profit_target, tick_size)
 
     Logger.info(
       "Buy order filled, placing SELL order for " <>
@@ -126,7 +126,7 @@ defmodule Naive.Trader do
     {:noreply, state}
   end
 
-  defp calculate_sell_price(buy_price, profit_interval, tick_size) do
+  defp calculate_sell_price(buy_price, profit_target, tick_size) do
     fee = "1.001"
 
     original_price = D.mult(D.from_float(buy_price), fee)
@@ -134,7 +134,7 @@ defmodule Naive.Trader do
     net_target_price =
       D.mult(
         original_price,
-        D.add("1.0", profit_interval)
+        D.add("1.0", profit_target)
       )
 
     gross_target_price = D.mult(net_target_price, fee)
