@@ -158,12 +158,7 @@ defmodule Naive.Trader do
   end
 
   defp convert_order_to_order_response(%Binance.Order{} = order) do
-    %{
-      struct(
-        Binance.OrderResponse,
-        order |> Map.to_list()
-      )
-      | transact_time: order.time
-    }
+    response = struct(Binance.OrderResponse, Map.from_struct(order))
+    %{response | transact_time: order.time}
   end
 end
