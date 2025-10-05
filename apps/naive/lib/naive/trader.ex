@@ -23,9 +23,7 @@ defmodule Naive.Trader do
 
   def init(%{symbol: symbol, profit_target: profit_target}) do
     symbol = String.upcase(symbol)
-
     Logger.info("Initializing new trader for #{symbol}")
-
     tick_size = fetch_tick_size(symbol)
 
     {:ok,
@@ -41,7 +39,6 @@ defmodule Naive.Trader do
         %State{symbol: symbol, buy_order: nil} = state
       ) do
     quantity = "100"
-
     Logger.info("Placing BUY order for #{symbol} @ #{price}, quantity: #{quantity}")
 
     {:ok, %Binance.OrderResponse{} = order} =
@@ -76,7 +73,6 @@ defmodule Naive.Trader do
       )
 
     buy_order_response = convert_order_to_order_response(current_buy_order)
-
     sell_price = calculate_sell_price(buy_price, profit_target, tick_size)
 
     Logger.info(
@@ -112,7 +108,6 @@ defmodule Naive.Trader do
       )
 
     sell_order_response = convert_order_to_order_response(current_sell_order)
-
     Logger.info("Trade finished, trader will now exit")
     {:stop, :normal, %{state | sell_order: sell_order_response}}
   end
@@ -121,9 +116,23 @@ defmodule Naive.Trader do
     {:noreply, state}
   end
 
+  defp fetch_tick_size(symbol) do
+    Binance.get_exchange_info()
+    |> elem(1)
+    |> Map.get(:symbols)
+    |> Enum.find(&(&1["symbol"] == symbol))
+    |> Map.get("filters")
+    |> Enum.find(&(&1["filterType"] == "PRICE_FILTER"))
+    |> Map.get("tickSize")
+  end
+
+  defp convert_order_to_order_response(%Binance.Order{} = order) do
+    response = struct(Binance.OrderResponse, Map.from_struct(order))
+    %{response | transact_time: order.time}
+  end
+
   defp calculate_sell_price(buy_price, profit_target, tick_size) do
     fee = "1.001"
-
     original_price = D.mult(D.from_float(buy_price), fee)
 
     net_target_price =
@@ -140,20 +149,5 @@ defmodule Naive.Trader do
         tick_size
       )
     )
-  end
-
-  defp fetch_tick_size(symbol) do
-    Binance.get_exchange_info()
-    |> elem(1)
-    |> Map.get(:symbols)
-    |> Enum.find(&(&1["symbol"] == symbol))
-    |> Map.get("filters")
-    |> Enum.find(&(&1["filterType"] == "PRICE_FILTER"))
-    |> Map.get("tickSize")
-  end
-
-  defp convert_order_to_order_response(%Binance.Order{} = order) do
-    response = struct(Binance.OrderResponse, Map.from_struct(order))
-    %{response | transact_time: order.time}
   end
 end
