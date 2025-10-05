@@ -1,9 +1,7 @@
 defmodule BinanceMock do
   use GenServer
-
   alias Decimal, as: D
   alias Streamer.Binance.TradeEvent
-
   require Logger
 
   defmodule State do
@@ -22,6 +20,13 @@ defmodule BinanceMock do
     {:ok, %State{}}
   end
 
+  def get_order(symbol, time, order_id) do
+    GenServer.call(
+      __MODULE__,
+      {:get_order, symbol, time, order_id}
+    )
+  end
+
   def get_exchange_info do
     Binance.get_exchange_info()
   end
@@ -32,67 +37,6 @@ defmodule BinanceMock do
 
   def order_limit_sell(symbol, quantity, price, "GTC") do
     order_limit(symbol, quantity, price, "SELL")
-  end
-
-  def get_order(symbol, time, order_id) do
-    GenServer.call(
-      __MODULE__,
-      {:get_order, symbol, time, order_id}
-    )
-  end
-
-  def handle_cast(
-        {:add_order, %Binance.Order{symbol: symbol} = order},
-        %State{
-          order_books: order_books,
-          subscriptions: subscriptions
-        } = state
-      ) do
-    new_subscriptions = subscribe_to_topic(symbol, subscriptions)
-    updated_order_books = add_order(order, order_books)
-
-    {
-      :noreply,
-      %{
-        state
-        | order_books: updated_order_books,
-          subscriptions: new_subscriptions
-      }
-    }
-  end
-
-  def handle_call(
-        :generate_id,
-        _from,
-        %State{next_order_id: id} = state
-      ) do
-    {:reply, id, %{state | next_order_id: id + 1}}
-  end
-
-  def handle_call(
-        {:get_order, symbol, time, order_id},
-        _from,
-        %State{order_books: order_books} = state
-      ) do
-    order_book =
-      Map.get(
-        order_books,
-        :"#{symbol}",
-        %OrderBook{}
-      )
-
-    (order_book.buy_side ++
-       order_book.sell_side ++
-       order_book.historical)
-    |> Enum.find(
-      &(&1.symbol == symbol and
-          &1.time == time and
-          &1.order_id == order_id)
-    )
-    |> case do
-      %Binance.Order{} = order -> {:reply, {:ok, order}, state}
-      _ -> {:reply, {:error, :not_found}, state}
-    end
   end
 
   def handle_info(
@@ -143,6 +87,60 @@ defmodule BinanceMock do
     {:noreply, %{state | order_books: order_books}}
   end
 
+  def handle_cast(
+        {:add_order, %Binance.Order{symbol: symbol} = order},
+        %State{
+          order_books: order_books,
+          subscriptions: subscriptions
+        } = state
+      ) do
+    new_subscriptions = subscribe_to_topic(symbol, subscriptions)
+    updated_order_books = add_order(order, order_books)
+
+    {
+      :noreply,
+      %{
+        state
+        | order_books: updated_order_books,
+          subscriptions: new_subscriptions
+      }
+    }
+  end
+
+  def handle_call(
+        {:get_order, symbol, time, order_id},
+        _from,
+        %State{order_books: order_books} = state
+      ) do
+    order_book =
+      Map.get(
+        order_books,
+        :"#{symbol}",
+        %OrderBook{}
+      )
+
+    (order_book.buy_side ++
+       order_book.sell_side ++
+       order_book.historical)
+    |> Enum.find(
+      &(&1.symbol == symbol and
+          &1.time == time and
+          &1.order_id == order_id)
+    )
+    |> case do
+      %Binance.Order{} = order -> {:reply, {:ok, order}, state}
+      _ -> {:reply, {:error, :not_found}, state}
+    end
+  end
+
+  def handle_call(
+        :generate_id,
+        _from,
+        %State{next_order_id: id} = state
+      ) do
+    {:reply, id, %{state | next_order_id: id + 1}}
+  end
+
   defp order_limit(symbol, quantity, price, side) do
     %Binance.Order{} =
       fake_order =
@@ -159,6 +157,40 @@ defmodule BinanceMock do
     )
 
     {:ok, convert_order_to_order_response(fake_order)}
+  end
+
+  defp generate_fake_order(symbol, quantity, price, side)
+       when is_binary(symbol) and
+              is_binary(quantity) and
+              is_number(price) and
+              (side == "BUY" or side == "SELL") do
+    current_timestamp = :os.system_time(:millisecond)
+    order_id = GenServer.call(__MODULE__, :generate_id)
+    client_order_id = :crypto.hash(:md5, "#{order_id}") |> Base.encode16()
+
+    Binance.Order.new(%{
+      symbol: symbol,
+      order_id: order_id,
+      client_order_id: client_order_id,
+      price: price,
+      orig_qty: quantity,
+      executed_qty: "0.00000000",
+      cummulative_quote_qty: "0.00000000",
+      status: "NEW",
+      time_in_force: "GTC",
+      type: "LIMIT",
+      side: side,
+      stop_price: "0.00000000",
+      iceberg_qty: "0.00000000",
+      time: current_timestamp,
+      update_time: current_timestamp,
+      is_working: true
+    })
+  end
+
+  defp convert_order_to_order_response(%Binance.Order{} = order) do
+    response = struct(Binance.OrderResponse, Map.from_struct(order))
+    %{response | transact_time: order.time}
   end
 
   defp subscribe_to_topic(symbol, subscriptions) do
@@ -204,39 +236,5 @@ defmodule BinanceMock do
   defp insert_sorted(order, orders, sorter) do
     {left, right} = Enum.split_while(orders, &sorter.(&1.price, order.price))
     left ++ [order | right]
-  end
-
-  defp generate_fake_order(symbol, quantity, price, side)
-       when is_binary(symbol) and
-              is_binary(quantity) and
-              is_number(price) and
-              (side == "BUY" or side == "SELL") do
-    current_timestamp = :os.system_time(:millisecond)
-    order_id = GenServer.call(__MODULE__, :generate_id)
-    client_order_id = :crypto.hash(:md5, "#{order_id}") |> Base.encode16()
-
-    Binance.Order.new(%{
-      symbol: symbol,
-      order_id: order_id,
-      client_order_id: client_order_id,
-      price: price,
-      orig_qty: quantity,
-      executed_qty: "0.00000000",
-      cummulative_quote_qty: "0.00000000",
-      status: "NEW",
-      time_in_force: "GTC",
-      type: "LIMIT",
-      side: side,
-      stop_price: "0.00000000",
-      iceberg_qty: "0.00000000",
-      time: current_timestamp,
-      update_time: current_timestamp,
-      is_working: true
-    })
-  end
-
-  defp convert_order_to_order_response(%Binance.Order{} = order) do
-    response = struct(Binance.OrderResponse, Map.from_struct(order))
-    %{response | transact_time: order.time}
   end
 end
