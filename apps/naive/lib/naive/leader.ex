@@ -52,6 +52,10 @@ defmodule Naive.Leader do
     {:noreply, %{state | settings: settings, traders: traders}}
   end
 
+  defp fresh_trader_state(settings) do
+    struct(Trader.State, settings)
+  end
+
   def handle_call(
         {:update_trader_state, new_trader_state},
         {trader_pid, _},
@@ -65,7 +69,6 @@ defmodule Naive.Leader do
       index ->
         old_trader_data = Enum.at(traders, index)
         new_trader_data = %{old_trader_data | :state => new_trader_state}
-
         {:reply, :ok, %{state | :traders => List.replace_at(traders, index, new_trader_data)}}
     end
   end
@@ -88,7 +91,6 @@ defmodule Naive.Leader do
       index ->
         new_trader_data = start_new_trader(fresh_trader_state(settings))
         new_traders = List.replace_at(traders, index, new_trader_data)
-
         {:noreply, %{state | traders: new_traders}}
     end
   end
@@ -112,13 +114,19 @@ defmodule Naive.Leader do
         trader_data = Enum.at(traders, index)
         new_trader_data = start_new_trader(trader_data.state)
         new_traders = List.replace_at(traders, index, new_trader_data)
-
         {:noreply, %{state | traders: new_traders}}
     end
   end
 
-  defp fresh_trader_state(settings) do
-    struct(Trader.State, settings)
+  defp start_new_trader(%Trader.State{} = state) do
+    {:ok, pid} =
+      DynamicSupervisor.start_child(
+        :"Naive.DynamicTraderSupervisor-#{state.symbol}",
+        {Naive.Trader, state}
+      )
+
+    ref = Process.monitor(pid)
+    %TraderData{pid: pid, ref: ref, state: state}
   end
 
   defp fetch_symbol_settings(symbol) do
@@ -141,17 +149,5 @@ defmodule Naive.Leader do
     |> Map.get("filters")
     |> Enum.find(&(&1["filterType"] == "PRICE_FILTER"))
     |> Map.get("tickSize")
-  end
-
-  defp start_new_trader(%Trader.State{} = state) do
-    {:ok, pid} =
-      DynamicSupervisor.start_child(
-        :"Naive.DynamicTraderSupervisor-#{state.symbol}",
-        {Naive.Trader, state}
-      )
-
-    ref = Process.monitor(pid)
-
-    %TraderData{pid: pid, ref: ref, state: state}
   end
 end
