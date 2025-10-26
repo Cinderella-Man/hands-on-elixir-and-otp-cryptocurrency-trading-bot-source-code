@@ -12,7 +12,7 @@ defmodule Naive.Trader do
     @enforce_keys [
       :symbol,
       :buy_down_interval,
-      :profit_interval,
+      :profit_target,
       :tick_size
     ]
     defstruct [
@@ -20,7 +20,7 @@ defmodule Naive.Trader do
       :buy_order,
       :sell_order,
       :buy_down_interval,
-      :profit_interval,
+      :profit_target,
       :tick_size
     ]
   end
@@ -31,8 +31,7 @@ defmodule Naive.Trader do
 
   def init(%State{symbol: symbol} = state) do
     symbol = String.upcase(symbol)
-
-    Logger.info("Initializing new trader for #{symbol}")
+    Logger.info("Initializing new trader for symbol(#{symbol})")
 
     Phoenix.PubSub.subscribe(
       Streamer.PubSub,
@@ -52,9 +51,7 @@ defmodule Naive.Trader do
         } = state
       ) do
     price = calculate_buy_price(price, buy_down_interval, tick_size)
-
     quantity = "100"
-
     Logger.info("Placing BUY order for #{symbol} @ #{price}, quantity: #{quantity}")
 
     {:ok, %Binance.OrderResponse{} = order} =
@@ -73,17 +70,25 @@ defmodule Naive.Trader do
           symbol: symbol,
           buy_order: %Binance.OrderResponse{
             price: buy_price,
-            orig_qty: quantity
-          } = buy_order,
+            order_id: order_id,
+            orig_qty: quantity,
+            transact_time: timestamp
+          },
           sell_order: nil,
-          profit_interval: profit_interval,
+          profit_target: profit_target,
           tick_size: tick_size
         } = state
       )
-      when trade_price < buy_price do
-    updated_buy_order = %{buy_order | status: "FILLED"}
+      when trade_price <= buy_price do
+    {:ok, %Binance.Order{} = current_buy_order} =
+      @binance_client.get_order(
+        symbol,
+        timestamp,
+        order_id
+      )
 
-    sell_price = calculate_sell_price(buy_price, profit_interval, tick_size)
+    buy_order_response = convert_order_to_order_response(current_buy_order)
+    sell_price = calculate_sell_price(buy_price, profit_target, tick_size)
 
     Logger.info(
       "Buy order filled, placing SELL order for " <>
@@ -93,7 +98,7 @@ defmodule Naive.Trader do
     {:ok, %Binance.OrderResponse{} = order} =
       @binance_client.order_limit_sell(symbol, quantity, sell_price, "GTC")
 
-    new_state = %{state | buy_order: updated_buy_order, sell_order: order}
+    new_state = %{state | buy_order: buy_order_response, sell_order: order}
     Naive.Leader.notify(:trader_state_updated, new_state)
     {:noreply, new_state}
   end
@@ -103,55 +108,72 @@ defmodule Naive.Trader do
           price: trade_price
         },
         %State{
+          symbol: symbol,
           sell_order: %Binance.OrderResponse{
-            price: sell_price
+            price: sell_price,
+            order_id: order_id,
+            transact_time: timestamp
           }
         } = state
       )
-      when trade_price > sell_price do
+      when trade_price >= sell_price do
+    {:ok, %Binance.Order{} = current_sell_order} =
+      @binance_client.get_order(
+        symbol,
+        timestamp,
+        order_id
+      )
+
+    sell_order_response = convert_order_to_order_response(current_sell_order)
     Logger.info("Trade finished, trader will now exit")
-    {:stop, :normal, state}
+    new_state = %{state | sell_order: sell_order_response}
+    Naive.Leader.notify(:trader_state_updated, new_state)
+    {:stop, :normal, new_state}
   end
 
   def handle_info(%TradeEvent{}, state) do
     {:noreply, state}
   end
 
-  defp calculate_sell_price(buy_price, profit_interval, tick_size) do
+  defp convert_order_to_order_response(%Binance.Order{} = order) do
+    response = struct(Binance.OrderResponse, Map.from_struct(order))
+    %{response | transact_time: order.time}
+  end
+
+  defp calculate_sell_price(buy_price, profit_target, tick_size) do
     fee = "1.001"
-    original_price = D.mult(buy_price, fee)
+    original_price = D.mult(D.from_float(buy_price), fee)
 
     net_target_price =
       D.mult(
         original_price,
-        D.add("1.0", profit_interval)
+        D.add("1.0", profit_target)
       )
 
     gross_target_price = D.mult(net_target_price, fee)
 
-    D.to_string(
+    D.to_float(
       D.mult(
         D.div_int(gross_target_price, tick_size),
         tick_size
-      ),
-      :normal
+      )
     )
   end
 
   defp calculate_buy_price(current_price, buy_down_interval, tick_size) do
-    # not necessarily legal price
+    current_price = D.from_float(current_price)
+
     exact_buy_price =
       D.sub(
         current_price,
         D.mult(current_price, buy_down_interval)
       )
 
-    D.to_string(
+    D.to_float(
       D.mult(
         D.div_int(exact_buy_price, tick_size),
         tick_size
-      ),
-      :normal
+      )
     )
   end
 end
