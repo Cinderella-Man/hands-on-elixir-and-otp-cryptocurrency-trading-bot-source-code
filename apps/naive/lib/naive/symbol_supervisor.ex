@@ -1,6 +1,5 @@
 defmodule Naive.SymbolSupervisor do
   use Supervisor
-
   require Logger
 
   def start_link(symbol) do
