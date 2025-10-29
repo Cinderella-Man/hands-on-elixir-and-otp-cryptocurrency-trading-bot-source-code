@@ -234,7 +234,15 @@ defmodule BinanceMock do
   end
 
   defp insert_sorted(order, orders, sorter) do
-    {left, right} = Enum.split_while(orders, &sorter.(&1.price, order.price))
+    {left, right} =
+      Enum.split_while(
+        orders,
+        &sorter.(
+          D.from_float(&1.price),
+          D.from_float(order.price)
+        )
+      )
+
     left ++ [order | right]
   end
 end
