@@ -9,7 +9,7 @@ defmodule Streamer.MixProject do
       config_path: "../../config/config.exs",
       deps_path: "../../deps",
       lockfile: "../../mix.lock",
-      elixir: "~> 1.10",
+      elixir: "~> 1.18",
       start_permanent: Mix.env() == :prod,
       deps: deps()
     ]
@@ -26,9 +26,9 @@ defmodule Streamer.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:jason, "~> 1.2"},
+      {:jason, "~> 1.4"},
       {:phoenix_pubsub, "~> 2.0"},
-      {:websockex, "~> 0.4.2"}
+      {:websockex, "~> 0.4"}
     ]
   end
 end
