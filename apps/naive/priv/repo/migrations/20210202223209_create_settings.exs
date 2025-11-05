@@ -12,10 +12,10 @@ defmodule Naive.Repo.Migrations.CreateSettings do
       add(:chunks, :integer, null: false)
       add(:budget, :decimal, null: false)
       add(:buy_down_interval, :decimal, null: false)
-      add(:profit_interval, :decimal, null: false)
+      add(:profit_target, :decimal, null: false)
       add(:rebuy_interval, :decimal, null: false)
       add(:status, TradingStatusEnum.type(), default: "off", null: false)
-      
+
       timestamps()
     end
 
