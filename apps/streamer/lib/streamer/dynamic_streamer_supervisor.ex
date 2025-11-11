@@ -55,12 +55,12 @@ defmodule Streamer.DynamicStreamerSupervisor do
   end
 
   defp get_pid(symbol) do
-    Process.whereis(:"Elixir.Streamer.Binance-#{symbol}")
+    Process.whereis(:"Elixir.Streamer.Binance-#{String.upcase(symbol)}")
   end
 
   defp update_streaming_status(symbol, status)
        when is_binary(symbol) and is_binary(status) do
-    Repo.get_by(Settings, symbol: symbol)
+    Repo.get_by(Settings, symbol: String.upcase(symbol))
     |> Ecto.Changeset.change(%{status: status})
     |> Repo.update()
   end

@@ -22,8 +22,6 @@ defmodule Naive.DynamicSymbolSupervisor do
   end
 
   def start_trading(symbol) when is_binary(symbol) do
-    symbol = String.upcase(symbol)
-
     case get_pid(symbol) do
       nil ->
         Logger.info("Starting trading of #{symbol}")
@@ -38,8 +36,6 @@ defmodule Naive.DynamicSymbolSupervisor do
   end
 
   def stop_trading(symbol) when is_binary(symbol) do
-    symbol = String.upcase(symbol)
-
     case get_pid(symbol) do
       nil ->
         Logger.warning("Trading on #{symbol} already stopped")
@@ -59,8 +55,6 @@ defmodule Naive.DynamicSymbolSupervisor do
   end
 
   def shutdown_trading(symbol) when is_binary(symbol) do
-    symbol = String.upcase(symbol)
-
     case get_pid(symbol) do
       nil ->
         Logger.warning("Trading on #{symbol} already stopped")
@@ -75,12 +69,12 @@ defmodule Naive.DynamicSymbolSupervisor do
   end
 
   defp get_pid(symbol) do
-    Process.whereis(:"Elixir.Naive.SymbolSupervisor-#{symbol}")
+    Process.whereis(:"Elixir.Naive.SymbolSupervisor-#{String.upcase(symbol)}")
   end
 
   defp update_trading_status(symbol, status)
        when is_binary(symbol) and is_binary(status) do
-    Repo.get_by(Settings, symbol: symbol)
+    Repo.get_by(Settings, symbol: String.upcase(symbol))
     |> Ecto.Changeset.change(%{status: status})
     |> Repo.update()
   end

@@ -1,6 +1,7 @@
 require Logger
 
 alias Streamer.Repo
+
 alias Streamer.Schema.Settings
 
 Logger.info("Fetching exchange info from Binance to create streaming settings")
@@ -19,9 +20,13 @@ base_settings = %{
 
 Logger.info("Inserting default settings for symbols")
 
-maps = symbols
+total_count = symbols
   |> Enum.map(&(%{base_settings | symbol: &1["symbol"]}))
+  |> Enum.chunk_every(1000)
+  |> Enum.reduce(0, fn batch, acc ->
+    {count, nil} = Repo.insert_all(Settings, batch)
+    Logger.info("Inserted batch of #{count} symbols")
+    acc + count
+  end)
 
-{count, nil} = Repo.insert_all(Settings, maps)
-
-Logger.info("Inserted settings for #{count} symbols")
+Logger.info("Inserted settings for #{total_count} symbols")
