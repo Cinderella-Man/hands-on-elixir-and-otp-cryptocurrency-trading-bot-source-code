@@ -6,13 +6,13 @@ defmodule Streamer.Binance do
   @stream_endpoint "wss://stream.binance.com:9443/ws/"
 
   def start_link(symbol) do
-    lowercased_symbol = String.downcase(symbol)
+    symbol = String.downcase(symbol)
 
     WebSockex.start_link(
-      "#{@stream_endpoint}#{lowercased_symbol}@trade",
+      "#{@stream_endpoint}#{String.downcase(symbol)}@trade",
       __MODULE__,
       nil,
-      name: :"#{__MODULE__}-#{symbol}"
+      name: :"#{__MODULE__}-#{String.upcase(symbol)}"
     )
   end
 
@@ -26,12 +26,14 @@ defmodule Streamer.Binance do
   end
 
   defp process_event(%{"e" => "trade"} = event) do
+    {trade_price, ""} = Float.parse(event["p"])
+
     trade_event = %Streamer.Binance.TradeEvent{
       :event_type => event["e"],
       :event_time => event["E"],
       :symbol => event["s"],
       :trade_id => event["t"],
-      :price => event["p"],
+      :price => trade_price,
       :quantity => event["q"],
       :trade_time => event["T"],
       :buyer_market_maker => event["m"]

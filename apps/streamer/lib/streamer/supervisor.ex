@@ -1,3 +1,4 @@
+# <= updated module name
 defmodule Streamer.Supervisor do
   use Supervisor
 
@@ -5,7 +6,6 @@ defmodule Streamer.Supervisor do
     Supervisor.start_link(__MODULE__, init_arg, name: __MODULE__)
   end
 
-  @impl true
   def init(_init_arg) do
     children = [
       {Streamer.DynamicStreamerSupervisor, []},
