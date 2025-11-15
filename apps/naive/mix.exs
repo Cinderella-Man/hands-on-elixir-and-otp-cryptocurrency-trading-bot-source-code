@@ -9,7 +9,7 @@ defmodule Naive.MixProject do
       config_path: "../../config/config.exs",
       deps_path: "../../deps",
       lockfile: "../../mix.lock",
-      elixir: "~> 1.10",
+      elixir: "~> 1.18",
       start_permanent: Mix.env() == :prod,
       deps: deps()
     ]
@@ -28,6 +28,7 @@ defmodule Naive.MixProject do
     [
       {:binance, "~> 1.0"},
       {:binance_mock, in_umbrella: true},
+      {:core, in_umbrella: true},
       {:decimal, "~> 2.0"},
       {:ecto_sql, "~> 3.0"},
       {:ecto_enum, "~> 1.4"},

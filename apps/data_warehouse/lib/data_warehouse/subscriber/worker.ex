@@ -1,6 +1,5 @@
 defmodule DataWarehouse.Subscriber.Worker do
   use GenServer
-
   require Logger
 
   defmodule State do
@@ -34,6 +33,8 @@ defmodule DataWarehouse.Subscriber.Worker do
     opts =
       trade_event
       |> Map.from_struct()
+      |> Map.update!(:price, &Decimal.from_float/1)
+      |> Map.update!(:quantity, &Decimal.new/1)
 
     struct!(DataWarehouse.Schema.TradeEvent, opts)
     |> DataWarehouse.Repo.insert()
@@ -45,13 +46,15 @@ defmodule DataWarehouse.Subscriber.Worker do
     data =
       order
       |> Map.from_struct()
+      |> Map.update!(:price, &Decimal.from_float/1)
+      |> Map.update!(:stop_price, &Decimal.new/1)
 
     struct(DataWarehouse.Schema.Order, data)
     |> Map.merge(%{
-      original_quantity: order.orig_qty,
-      executed_quantity: order.executed_qty,
-      cummulative_quote_quantity: order.cummulative_quote_qty,
-      iceberg_quantity: order.iceberg_qty
+      original_quantity: Decimal.new(order.orig_qty),
+      executed_quantity: Decimal.new(order.executed_qty),
+      cummulative_quote_quantity: Decimal.new(order.cummulative_quote_qty),
+      iceberg_quantity: Decimal.new(order.iceberg_qty)
     })
     |> DataWarehouse.Repo.insert(
       on_conflict: :replace_all,
