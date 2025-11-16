@@ -2,6 +2,7 @@ defmodule Naive do
   @moduledoc """
   Documentation for `Naive`.
   """
+
   alias Naive.DynamicSymbolSupervisor
 
   def start_trading(symbol) do

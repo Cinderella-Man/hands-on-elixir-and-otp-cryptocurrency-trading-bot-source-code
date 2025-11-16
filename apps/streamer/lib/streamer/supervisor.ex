@@ -1,3 +1,4 @@
+# <= updated module name
 defmodule Streamer.Supervisor do
   use Supervisor
 

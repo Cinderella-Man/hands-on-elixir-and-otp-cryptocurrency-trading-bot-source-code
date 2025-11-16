@@ -1,6 +1,5 @@
 defmodule Naive.SymbolSupervisor do
   use Supervisor
-
   require Logger
 
   def start_link(symbol) do
@@ -27,6 +26,6 @@ defmodule Naive.SymbolSupervisor do
   end
 
   defp via_tuple(symbol) do
-    {:via, Registry, {:naive_symbol_supervisors, symbol}}
+    {:via, Registry, {:naive_symbol_supervisors, String.upcase(symbol)}}
   end
 end

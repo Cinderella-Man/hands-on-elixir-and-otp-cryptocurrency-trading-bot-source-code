@@ -2,6 +2,7 @@ defmodule DataWarehouse do
   @moduledoc """
   Documentation for `DataWarehouse`.
   """
+
   alias DataWarehouse.Subscriber.DynamicSupervisor
 
   def start_storing(stream, symbol) do
