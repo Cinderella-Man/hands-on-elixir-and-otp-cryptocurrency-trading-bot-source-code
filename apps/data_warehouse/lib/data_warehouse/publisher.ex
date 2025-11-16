@@ -2,6 +2,7 @@ defmodule DataWarehouse.Publisher do
   use Task
 
   import Ecto.Query, only: [from: 2]
+
   require Logger
 
   def start_link(arg) do
