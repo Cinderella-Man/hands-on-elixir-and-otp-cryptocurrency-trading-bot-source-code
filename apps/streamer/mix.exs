@@ -27,7 +27,6 @@ defmodule Streamer.MixProject do
   defp deps do
     [
       {:binance, "~> 1.0"},
-      {:core, in_umbrella: true},
       {:ecto_sql, "~> 3.0"},
       {:ecto_enum, "~> 1.4"},
       {:jason, "~> 1.2"},
