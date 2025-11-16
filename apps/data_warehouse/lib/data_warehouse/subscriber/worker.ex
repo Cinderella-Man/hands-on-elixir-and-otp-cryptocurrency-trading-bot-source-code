@@ -65,6 +65,6 @@ defmodule DataWarehouse.Subscriber.Worker do
   end
 
   defp via_tuple(topic) do
-    {:via, Registry, {:subscriber_workers, topic}}
+    {:via, Registry, {:subscriber_workers, String.upcase(topic)}}
   end
 end
