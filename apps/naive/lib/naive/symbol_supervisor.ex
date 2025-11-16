@@ -6,7 +6,7 @@ defmodule Naive.SymbolSupervisor do
     Supervisor.start_link(
       __MODULE__,
       symbol,
-      name: :"#{__MODULE__}-#{symbol}"
+      name: via_tuple(symbol)
     )
   end
 
@@ -23,5 +23,9 @@ defmodule Naive.SymbolSupervisor do
       ],
       strategy: :one_for_all
     )
+  end
+
+  defp via_tuple(symbol) do
+    {:via, Registry, {:naive_symbol_supervisors, String.upcase(symbol)}}
   end
 end
