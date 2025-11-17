@@ -8,8 +8,8 @@ defmodule DataWarehouse.Repo.Migrations.CreateTradeEvents do
       add(:event_time, :bigint)
       add(:symbol, :text)
       add(:trade_id, :bigint)
-      add(:price, :text)
-      add(:quantity, :text)
+      add(:price, :decimal)
+      add(:quantity, :decimal)
       add(:trade_time, :bigint)
       add(:buyer_market_maker, :bool)
 
