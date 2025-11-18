@@ -10,7 +10,7 @@ defmodule DataWarehouse.Repo.Migrations.CreateSubscriberSettings do
       add(:id, :uuid, primary_key: true)
       add(:topic, :text, null: false)
       add(:status, SubscriberStatusEnum.type(), default: "off", null: false)
-      
+
       timestamps()
     end
 

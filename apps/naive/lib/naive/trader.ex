@@ -14,7 +14,7 @@ defmodule Naive.Trader do
       :symbol,
       :budget,
       :buy_down_interval,
-      :profit_interval,
+      :profit_target,
       :rebuy_interval,
       :rebuy_notified,
       :tick_size,
@@ -27,7 +27,7 @@ defmodule Naive.Trader do
       :buy_order,
       :sell_order,
       :buy_down_interval,
-      :profit_interval,
+      :profit_target,
       :rebuy_interval,
       :rebuy_notified,
       :tick_size,
@@ -41,8 +41,7 @@ defmodule Naive.Trader do
 
   def init(%State{id: id, symbol: symbol} = state) do
     symbol = String.upcase(symbol)
-
-    @logger.info("Initializing a new trader(#{id}) for #{symbol}")
+    @logger.info("Initializing new trader(#{id}) for #{symbol}")
 
     @pubsub_client.subscribe(
       Core.PubSub,

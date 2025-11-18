@@ -53,25 +53,26 @@ defmodule DataWarehouse.Publisher do
     Logger.info("Publisher finished streaming trade events")
   end
 
-  defp publish_trade_event(%DataWarehouse.Schema.TradeEvent{} = trade_event) do
-    new_trade_event =
-      struct(
-        Core.Struct.TradeEvent,
-        trade_event |> Map.to_list()
-      )
-
-    Phoenix.PubSub.broadcast(
-      Core.PubSub,
-      "TRADE_EVENTS:#{trade_event.symbol}",
-      new_trade_event
-    )
-  end
-
   defp convert_to_ms(iso8601DateString) do
     iso8601DateString
     |> NaiveDateTime.from_iso8601!()
     |> DateTime.from_naive!("Etc/UTC")
     |> DateTime.to_unix()
     |> Kernel.*(1000)
+  end
+
+  defp publish_trade_event(%DataWarehouse.Schema.TradeEvent{} = trade_event) do
+    new_trade_event =
+      trade_event
+      |> Map.from_struct()
+      |> Map.update!(:price, &Decimal.to_float/1)
+      |> Map.update!(:quantity, &Decimal.to_string/1)
+      |> then(&struct(Core.Struct.TradeEvent, &1))
+
+    Phoenix.PubSub.broadcast(
+      Core.PubSub,
+      "TRADE_EVENTS:#{trade_event.symbol}",
+      new_trade_event
+    )
   end
 end

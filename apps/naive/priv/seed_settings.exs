@@ -13,7 +13,7 @@ Logger.info("Fetching exchange info from Binance to create trading settings")
   chunks: chunks,
   budget: budget,
   buy_down_interval: buy_down_interval,
-  profit_interval: profit_interval,
+  profit_target: profit_target,
   rebuy_interval: rebuy_interval
 } = Application.compile_env(:naive, :trading).defaults
 
@@ -25,7 +25,7 @@ base_settings = %{
   chunks: chunks,
   budget: Decimal.new(budget),
   buy_down_interval: Decimal.new(buy_down_interval),
-  profit_interval: Decimal.new(profit_interval),
+  profit_target: Decimal.new(profit_target),
   rebuy_interval: Decimal.new(rebuy_interval),
   status: "off",
   inserted_at: timestamp,
@@ -34,9 +34,13 @@ base_settings = %{
 
 Logger.info("Inserting default settings for symbols")
 
-maps = symbols
+total_count = symbols
   |> Enum.map(&(%{base_settings | symbol: &1["symbol"]}))
+  |> Enum.chunk_every(1000)
+  |> Enum.reduce(0, fn batch, acc ->
+    {count, nil} = Repo.insert_all(Settings, batch)
+    Logger.info("Inserted batch of #{count} symbols")
+    acc + count
+  end)
 
-{count, nil} = Repo.insert_all(Settings, maps)
-
-Logger.info("Inserted settings for #{count} symbols")
+Logger.info("Inserted settings for #{total_count} symbols")
