@@ -9,15 +9,12 @@
 # move said applications out of the umbrella.
 import Config
 
-config :binance_mock,
-  use_cached_exchange_info: false
-
 config :core,
   logger: Logger,
   pubsub_client: Phoenix.PubSub
 
-config :data_warehouse,
-  ecto_repos: [DataWarehouse.Repo]
+config :binance_mock,
+  use_cached_exchange_info: false
 
 config :data_warehouse, DataWarehouse.Repo,
   database: "data_warehouse",
@@ -25,29 +22,11 @@ config :data_warehouse, DataWarehouse.Repo,
   password: "postgres",
   hostname: "localhost"
 
-config :streamer,
-  binance_client: BinanceMock,
-  ecto_repos: [Streamer.Repo]
-
 config :streamer, Streamer.Repo,
   database: "streamer",
   username: "postgres",
   password: "postgres",
   hostname: "localhost"
-
-config :naive,
-  binance_client: BinanceMock,
-  ecto_repos: [Naive.Repo],
-  leader: Naive.Leader,
-  trading: %{
-    defaults: %{
-      chunks: 5,
-      budget: 1000,
-      buy_down_interval: "0.0001",
-      profit_interval: "-0.0012",
-      rebuy_interval: "0.001"
-    }
-  }
 
 config :naive, Naive.Repo,
   database: "naive",
@@ -57,6 +36,27 @@ config :naive, Naive.Repo,
 
 config :logger,
   level: :info
+
+config :streamer,
+  binance_client: BinanceMock,
+  ecto_repos: [Streamer.Repo]
+
+config :naive,
+  ecto_repos: [Naive.Repo],
+  binance_client: BinanceMock,
+  leader: Naive.Leader,
+  trading: %{
+    defaults: %{
+      chunks: 5,
+      budget: 1000,
+      buy_down_interval: "0.0001",
+      profit_target: "-0.0012",
+      rebuy_interval: "0.001"
+    }
+  }
+
+config :data_warehouse,
+  ecto_repos: [DataWarehouse.Repo]
 
 # Import secrets file with Binance keys if it exists
 if File.exists?("config/secrets.exs") do

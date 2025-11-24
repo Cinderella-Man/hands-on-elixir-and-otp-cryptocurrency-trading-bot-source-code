@@ -1,9 +1,9 @@
 defmodule Indicator.Ohlc.Worker do
   use GenServer
 
-  require Logger
-
   alias Core.Struct.TradeEvent
+
+  require Logger
 
   @logger Application.compile_env(:core, :logger)
   @pubsub_client Application.compile_env(:core, :pubsub_client)

@@ -94,8 +94,10 @@ wget https://github.com/Cinderella-Man/binance-trade-events/raw/master/XRPUSDT/X
 
 gunzip XRPUSDT-2019-06-03.csv.gz
 
-PGPASSWORD=postgres psql -Upostgres -h localhost -ddata_warehouse  -c "\COPY trade_events FROM '/tmp/XRPUSDT-2019-06-03.csv' WITH (FORMAT csv, delimiter ';');"
-
+awk -F';' 'BEGIN {OFS=";"} {print $1,$2,$3,$4,$5,$6,$7,$10,$11,$12,$13}' \
+/tmp/XRPUSDT-2019-06-03.csv | \
+PGPASSWORD=postgres psql -Upostgres -h localhost -ddata_warehouse \
+-c "\COPY trade_events FROM STDIN WITH (FORMAT csv, delimiter ';');" ';');"
 ```
 
 ## Running backtesting

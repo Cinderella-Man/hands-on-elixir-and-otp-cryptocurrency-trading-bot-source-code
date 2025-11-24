@@ -15,7 +15,7 @@ defmodule NaiveTest do
     # Step 1 - Update trading settings
 
     settings = [
-      profit_interval: 0.001,
+      profit_target: 0.001,
       buy_down_interval: 0.0025,
       chunks: 5,
       budget: 100.0
@@ -33,32 +33,35 @@ defmodule NaiveTest do
 
     # Step 3 - Start storing orders
 
-    DataWarehouse.start_storing("ORDERS", "XRPUSDT")
+    DataWarehouse.start_storing("ORDERS", symbol)
     :timer.sleep(5000)
 
-    # Step 4 - Broadcast 10 events
+    # Step 4 - Broadcast 8 events
 
     [
+      # below event will trigger
       # buy order placed @ 0.4307
-      generate_event(1, "0.43183010", "213.10000000"),
-      generate_event(2, "0.43183020", "56.10000000"),
-      generate_event(3, "0.43183030", "12.10000000"),
+      generate_event(1, 0.43183010, "213.10000000"),
+      # above the buy price - ignored
+      generate_event(2, 0.43183020, "56.10000000"),
+      # above the buy price - ignored
+      generate_event(3, 0.43183030, "12.10000000"),
       # event at the expected buy price
-      generate_event(4, "0.4307", "38.92000000"),
+      # it should trigger fetching the buy order
+      generate_event(4, 0.4307, "38.92000000"),
       # event below the expected buy price
-      # it should trigger marking buy order as filled
-      # and place sell order @ 0.4319
-      generate_event(5, "0.43065", "126.53000000"),
-      # event below the expected sell price
-      generate_event(6, "0.43189", "26.18500000"),
+      # normally ignored but after fetching the buy order
+      # it should trigger placing a sell order @ 0.4319
+      generate_event(5, 0.43065, "126.53000000"),
       # event at exact the expected sell price
-      generate_event(7, "0.4319", "62.92640000"),
-      # event above the expected sell price
-      # it should trigger marking sell order as filled
-      generate_event(8, "0.43205", "345.14235000"),
-      # this one should trigger buy order for a new trader process
-      generate_event(9, "0.43205", "345.14235000"),
-      generate_event(10, "0.43210", "3201.86480000")
+      # it should trigger fetching the sell order
+      generate_event(6, 0.4319, "62.92640000"),
+      # event after fetching the sell order
+      # causes trader process to exit
+      generate_event(7, 0.43205, "345.14235000"),
+      # below event will trigger
+      # buy order placed @ 0.431
+      generate_event(8, 0.43210, "3201.86480000")
     ]
     |> Enum.each(fn event ->
       Phoenix.PubSub.broadcast(
@@ -83,9 +86,9 @@ defmodule NaiveTest do
 
     [buy_1, sell_1, buy_2] = DataWarehouse.Repo.all(query)
 
-    assert buy_1 == ["0.43070000", "BUY", "FILLED"]
-    assert sell_1 == ["0.43190000", "SELL", "FILLED"]
-    assert buy_2 == ["0.43100000", "BUY", "NEW"]
+    assert buy_1 == [Decimal.new("0.4307"), "BUY", "FILLED"]
+    assert sell_1 == [Decimal.new("0.4319"), "SELL", "FILLED"]
+    assert buy_2 == [Decimal.new("0.431"), "BUY", "NEW"]
   end
 
   defp generate_event(id, price, quantity) do

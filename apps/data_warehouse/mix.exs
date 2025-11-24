@@ -9,7 +9,7 @@ defmodule DataWarehouse.MixProject do
       config_path: "../../config/config.exs",
       deps_path: "../../deps",
       lockfile: "../../mix.lock",
-      elixir: "~> 1.11",
+      elixir: "~> 1.18",
       start_permanent: Mix.env() == :prod,
       deps: deps()
     ]
@@ -28,6 +28,7 @@ defmodule DataWarehouse.MixProject do
     [
       {:binance, "~> 1.0"},
       {:core, in_umbrella: true},
+      {:decimal, "~> 2.0"},
       {:ecto_sql, "~> 3.0"},
       {:ecto_enum, "~> 1.4"},
       {:phoenix_pubsub, "~> 2.0"},
