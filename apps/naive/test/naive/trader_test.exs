@@ -1,12 +1,12 @@
 defmodule Naive.TraderTest do
   use ExUnit.Case
+
   doctest Naive.Trader
 
   import Mox
 
   setup :set_mox_from_context
   setup :verify_on_exit!
-
   @tag :unit
   test "Placing buy order test" do
     Test.PubSubMock
@@ -14,13 +14,13 @@ defmodule Naive.TraderTest do
     |> expect(:broadcast, fn _module, "ORDERS:XRPUSDT", _order -> :ok end)
 
     Test.BinanceMock
-    |> expect(:order_limit_buy, fn "XRPUSDT", "464.360", "0.4307", "GTC" ->
+    |> expect(:order_limit_buy, fn "XRPUSDT", "464.360", 0.4307, "GTC" ->
       {:ok,
        BinanceMock.generate_fake_order(
          "12345",
          "XRPUSDT",
          "464.360",
-         "0.4307",
+         0.4307,
          "BUY"
        )
        |> BinanceMock.convert_order_to_order_response()}
@@ -38,7 +38,7 @@ defmodule Naive.TraderTest do
     |> expect(:info, 2, fn _message -> :ok end)
 
     trader_state = dummy_trader_state()
-    trade_event = generate_event(1, "0.43183010", "213.10000000")
+    trade_event = generate_event(1, 0.4318301, "213.10000000")
 
     {:ok, trader_pid} = Naive.Trader.start_link(trader_state)
     send(trader_pid, trade_event)
@@ -53,7 +53,7 @@ defmodule Naive.TraderTest do
       buy_order: nil,
       sell_order: nil,
       buy_down_interval: Decimal.new("0.0025"),
-      profit_interval: Decimal.new("0.001"),
+      profit_target: Decimal.new("0.001"),
       rebuy_interval: Decimal.new("0.006"),
       rebuy_notified: false,
       tick_size: "0.0001",

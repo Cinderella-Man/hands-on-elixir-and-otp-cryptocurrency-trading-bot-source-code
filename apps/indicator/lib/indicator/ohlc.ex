@@ -1,7 +1,7 @@
 defmodule Indicator.Ohlc do
-  require Logger
-
   alias Core.Struct.TradeEvent
+
+  require Logger
 
   @pubsub_client Application.compile_env(:core, :pubsub_client)
 
@@ -23,7 +23,6 @@ defmodule Indicator.Ohlc do
 
   def process([_ | _] = ohlcs, %TradeEvent{} = trade_event) do
     {old_ohlcs, new_ohlcs} = merge_prices(ohlcs, trade_event.price, trade_event.trade_time)
-
     old_ohlcs |> Enum.each(&maybe_broadcast/1)
     new_ohlcs
   end

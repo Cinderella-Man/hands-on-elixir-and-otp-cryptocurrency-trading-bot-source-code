@@ -1,19 +1,20 @@
 defmodule Naive.Trader do
   use GenServer, restart: :temporary
 
-  alias Core.Struct.TradeEvent
   alias Naive.Strategy
+  alias Core.Struct.TradeEvent
 
   require Logger
 
   @logger Application.compile_env(:core, :logger)
   @pubsub_client Application.compile_env(:core, :pubsub_client)
-  @registry :naive_traders
 
   defmodule State do
     @enforce_keys [:settings, :positions]
     defstruct [:settings, positions: []]
   end
+
+  @registry :naive_traders
 
   def start_link(symbol) do
     symbol = String.upcase(symbol)
@@ -79,6 +80,10 @@ defmodule Naive.Trader do
     end
   end
 
+  defp via_tuple(symbol) do
+    {:via, Registry, {@registry, symbol}}
+  end
+
   defp call_trader(symbol, data) do
     case Registry.lookup(@registry, symbol) do
       [{pid, _}] ->
@@ -91,9 +96,5 @@ defmodule Naive.Trader do
         Logger.warning("Unable to locate trader process assigned to #{symbol}")
         {:error, :unable_to_locate_trader}
     end
-  end
-
-  defp via_tuple(symbol) do
-    {:via, Registry, {@registry, symbol}}
   end
 end
