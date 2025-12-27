@@ -3,21 +3,13 @@ defmodule DataWarehouse.Repo.Migrations.CreateOrders do
 
   def change do
     create table(:orders, primary_key: false) do
-      add(:order_id, :bigint, primary_key: true)
-      add(:client_order_id, :text)
+      add(:id, :bigint, primary_key: true)
       add(:symbol, :text)
-      add(:price, :decimal)
-      add(:original_quantity, :decimal)
-      add(:executed_quantity, :decimal)
-      add(:cummulative_quote_quantity, :decimal)
-      add(:status, :text)
-      add(:time_in_force, :text)
-      add(:type, :text)
+      add(:price, :text)
+      add(:quantity, :text)
       add(:side, :text)
-      add(:stop_price, :decimal)
-      add(:iceberg_quantity, :decimal)
-      add(:time, :bigint)
-      add(:update_time, :bigint)
+      add(:status, :text)
+      add(:timestamp, :bigint)
 
       timestamps()
     end

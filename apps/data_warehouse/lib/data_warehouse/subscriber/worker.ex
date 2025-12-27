@@ -2,6 +2,8 @@ defmodule DataWarehouse.Subscriber.Worker do
   use GenServer
   require Logger
 
+  alias Core.Exchange
+
   defmodule State do
     @enforce_keys [:topic]
     defstruct [:topic]
@@ -42,27 +44,30 @@ defmodule DataWarehouse.Subscriber.Worker do
     {:noreply, state}
   end
 
-  def handle_info(%Binance.Order{} = order, state) do
+  def handle_info(%Exchange.Order{} = order, state) do
     data =
       order
       |> Map.from_struct()
-      |> Map.update!(:price, &Decimal.from_float/1)
-      |> Map.update!(:stop_price, &Decimal.new/1)
+      |> Map.update!(:price, &Float.to_string/1)
+      |> Map.merge(%{
+        side: atom_to_side(order.side),
+        status: atom_to_status(order.status)
+      })
 
     struct(DataWarehouse.Schema.Order, data)
-    |> Map.merge(%{
-      original_quantity: Decimal.new(order.orig_qty),
-      executed_quantity: Decimal.new(order.executed_qty),
-      cummulative_quote_quantity: Decimal.new(order.cummulative_quote_qty),
-      iceberg_quantity: Decimal.new(order.iceberg_qty)
-    })
     |> DataWarehouse.Repo.insert(
       on_conflict: :replace_all,
-      conflict_target: :order_id
+      conflict_target: :id
     )
 
     {:noreply, state}
   end
+
+  defp atom_to_side(:buy), do: "BUY"
+  defp atom_to_side(:sell), do: "SELL"
+
+  defp atom_to_status(:new), do: "NEW"
+  defp atom_to_status(:filled), do: "FILLED"
 
   defp via_tuple(topic) do
     {:via, Registry, {:subscriber_workers, String.upcase(topic)}}

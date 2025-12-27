@@ -38,12 +38,12 @@ config :logger,
   level: :info
 
 config :streamer,
-  binance_client: BinanceMock,
+  exchange_client: BinanceMock,
   ecto_repos: [Streamer.Repo]
 
 config :naive,
   ecto_repos: [Naive.Repo],
-  binance_client: BinanceMock,
+  exchange_client: BinanceMock,
   leader: Naive.Leader,
   repo: Naive.Repo,
   trading: %{

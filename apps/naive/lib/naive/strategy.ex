@@ -1,11 +1,12 @@
 defmodule Naive.Strategy do
+  alias Core.Exchange
   alias Core.Struct.TradeEvent
   alias Decimal, as: D
   alias Naive.Schema.Settings
 
   require Logger
 
-  @binance_client Application.compile_env(:naive, :binance_client)
+  @exchange_client Application.compile_env(:naive, :exchange_client)
   @logger Application.compile_env(:core, :logger)
   @pubsub_client Application.compile_env(:core, :pubsub_client)
   @repo Application.compile_env(:naive, :repo)
@@ -96,9 +97,9 @@ defmodule Naive.Strategy do
   def generate_decision(
         %TradeEvent{},
         %Position{
-          buy_order: %Binance.OrderResponse{
+          buy_order: %Exchange.Order{
             price: buy_price,
-            status: "FILLED"
+            status: :filled
           },
           sell_order: nil,
           profit_target: profit_target,
@@ -117,7 +118,7 @@ defmodule Naive.Strategy do
           price: trade_price
         },
         %Position{
-          buy_order: %Binance.OrderResponse{
+          buy_order: %Exchange.Order{
             price: buy_price
           },
           sell_order: nil
@@ -132,8 +133,8 @@ defmodule Naive.Strategy do
   def generate_decision(
         %TradeEvent{},
         %Position{
-          sell_order: %Binance.OrderResponse{
-            status: "FILLED"
+          sell_order: %Exchange.Order{
+            status: :filled
           }
         },
         _positions,
@@ -151,7 +152,7 @@ defmodule Naive.Strategy do
           price: trade_price
         },
         %Position{
-          sell_order: %Binance.OrderResponse{
+          sell_order: %Exchange.Order{
             price: sell_price
           }
         },
@@ -167,7 +168,7 @@ defmodule Naive.Strategy do
           price: current_price
         },
         %Position{
-          buy_order: %Binance.OrderResponse{
+          buy_order: %Exchange.Order{
             price: buy_price
           },
           rebuy_interval: rebuy_interval,
@@ -207,8 +208,8 @@ defmodule Naive.Strategy do
         "Placing a BUY order @ #{price}, quantity: #{quantity}"
     )
 
-    {:ok, %Binance.OrderResponse{} = order} =
-      @binance_client.order_limit_buy(symbol, quantity, price, "GTC")
+    {:ok, %Exchange.Order{} = order} =
+      @exchange_client.order_limit_buy(symbol, quantity, price)
 
     :ok = broadcast_order(order)
 
@@ -220,8 +221,8 @@ defmodule Naive.Strategy do
          %Position{
            id: id,
            symbol: symbol,
-           buy_order: %Binance.OrderResponse{
-             orig_qty: quantity
+           buy_order: %Exchange.Order{
+             quantity: quantity
            }
          } = position,
          _settings
@@ -231,8 +232,8 @@ defmodule Naive.Strategy do
         "Placing a SELL order @ #{sell_price}, quantity: #{quantity}"
     )
 
-    {:ok, %Binance.OrderResponse{} = order} =
-      @binance_client.order_limit_sell(symbol, quantity, sell_price, "GTC")
+    {:ok, %Exchange.Order{} = order} =
+      @exchange_client.order_limit_sell(symbol, quantity, sell_price)
 
     :ok = broadcast_order(order)
 
@@ -244,26 +245,24 @@ defmodule Naive.Strategy do
          %Position{
            id: id,
            symbol: symbol,
-           buy_order: %Binance.OrderResponse{
-             order_id: order_id,
-             transact_time: timestamp
+           buy_order: %Exchange.Order{
+             id: order_id,
+             timestamp: timestamp
            }
          } = position,
          _settings
        ) do
     @logger.info("Position (#{symbol}/#{id}): The BUY order is now filled")
 
-    {:ok, %Binance.Order{} = current_buy_order} =
-      @binance_client.get_order(
+    {:ok, %Exchange.Order{} = current_buy_order} =
+      @exchange_client.get_order(
         symbol,
         timestamp,
         order_id
       )
 
-    buy_order_response = convert_order_to_order_response(current_buy_order)
-    :ok = broadcast_order(buy_order_response)
-
-    {:ok, %{position | buy_order: buy_order_response}}
+    :ok = broadcast_order(current_buy_order)
+    {:ok, %{position | buy_order: current_buy_order}}
   end
 
   defp execute_decision(
@@ -284,9 +283,9 @@ defmodule Naive.Strategy do
          %Position{
            id: id,
            symbol: symbol,
-           sell_order: %Binance.OrderResponse{
-             order_id: order_id,
-             transact_time: timestamp
+           sell_order: %Exchange.Order{
+             id: order_id,
+             timestamp: timestamp
            }
          } = position,
          _settings
@@ -294,16 +293,14 @@ defmodule Naive.Strategy do
     @logger.info("Position (#{symbol}/#{id}): The SELL order is now filled")
 
     {:ok, %Binance.Order{} = current_sell_order} =
-      @binance_client.get_order(
+      @exchange_client.get_order(
         symbol,
         timestamp,
         order_id
       )
 
-    sell_order_response = convert_order_to_order_response(current_sell_order)
-    :ok = broadcast_order(sell_order_response)
-
-    {:ok, %{position | sell_order: sell_order_response}}
+    :ok = broadcast_order(current_sell_order)
+    {:ok, %{position | sell_order: current_sell_order}}
   end
 
   defp execute_decision(
@@ -400,16 +397,7 @@ defmodule Naive.Strategy do
     D.lt?(current_price, rebuy_price)
   end
 
-  defp convert_order_to_order_response(%Binance.Order{} = order) do
-    response = struct(Binance.OrderResponse, Map.from_struct(order))
-    %{response | transact_time: order.time}
-  end
-
-  defp broadcast_order(%Binance.OrderResponse{} = response) do
-    order =
-      response
-      |> convert_to_order()
-
+  defp broadcast_order(%Exchange.Order{} = order) do
     @pubsub_client.broadcast(
       Core.PubSub,
       "ORDERS:#{order.symbol}",
@@ -417,49 +405,12 @@ defmodule Naive.Strategy do
     )
   end
 
-  defp convert_to_order(%Binance.OrderResponse{} = response) do
-    data =
-      response
-      |> Map.from_struct()
-
-    struct(Binance.Order, data)
-    |> Map.merge(%{
-      cummulative_quote_qty: "0.00000000",
-      stop_price: "0.00000000",
-      iceberg_qty: "0.00000000",
-      is_working: true
-    })
-  end
-
   def fetch_symbol_settings(symbol) do
-    exchange_info = @binance_client.get_exchange_info()
+    {:ok, filters} = @exchange_client.fetch_symbol_filters(symbol)
     db_settings = @repo.get_by!(Settings, symbol: symbol)
-    merge_filters_into_settings(exchange_info, db_settings, symbol)
-  end
-
-  def merge_filters_into_settings(exchange_info, db_settings, symbol) do
-    symbol_filters =
-      exchange_info
-      |> elem(1)
-      |> Map.get(:symbols)
-      |> Enum.find(&(&1["symbol"] == symbol))
-      |> Map.get("filters")
-
-    tick_size =
-      symbol_filters
-      |> Enum.find(&(&1["filterType"] == "PRICE_FILTER"))
-      |> Map.get("tickSize")
-
-    step_size =
-      symbol_filters
-      |> Enum.find(&(&1["filterType"] == "LOT_SIZE"))
-      |> Map.get("stepSize")
 
     Map.merge(
-      %{
-        tick_size: tick_size,
-        step_size: step_size
-      },
+      filters |> Map.from_struct(),
       db_settings |> Map.from_struct()
     )
   end
