@@ -9,7 +9,7 @@ defmodule Naive.MixProject do
       config_path: "../../config/config.exs",
       deps_path: "../../deps",
       lockfile: "../../mix.lock",
-      elixir: "~> 1.10",
+      elixir: "~> 1.18",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       aliases: aliases()
@@ -40,7 +40,7 @@ defmodule Naive.MixProject do
       {:decimal, "~> 2.0"},
       {:ecto_sql, "~> 3.0"},
       {:ecto_enum, "~> 1.4"},
-      {:mimic, "~> 1.7", only: [:test, :integration]},
+      {:mimic, "~> 2.0", only: [:test, :integration]},
       {:phoenix_pubsub, "~> 2.0"},
       {:postgrex, ">= 0.0.0"}
     ]

@@ -1,7 +1,6 @@
 defmodule Naive.StrategyTest do
   use ExUnit.Case, async: true
   use Mimic
-
   alias Core.Struct.TradeEvent
   alias Naive.Strategy
 
@@ -23,7 +22,7 @@ defmodule Naive.StrategyTest do
     BinanceMock
     |> stub(
       :order_limit_buy,
-      fn "ABC", "50.000", "0.800000", "GTC" -> {:ok, expected_order} end
+      fn "ABC", "50.000", 0.8, "GTC" -> {:ok, expected_order} end
     )
 
     Phoenix.PubSub
@@ -37,7 +36,7 @@ defmodule Naive.StrategyTest do
       chunks: "5",
       budget: "200",
       buy_down_interval: "0.2",
-      profit_interval: "0.1",
+      profit_target: "0.1",
       rebuy_interval: "0.5",
       tick_size: "0.000001",
       step_size: "0.001",
@@ -48,7 +47,7 @@ defmodule Naive.StrategyTest do
       with_log(fn ->
         Naive.Strategy.execute(
           %TradeEvent{
-            price: "1.00000"
+            price: 1.00
           },
           [
             Strategy.generate_fresh_position(settings)

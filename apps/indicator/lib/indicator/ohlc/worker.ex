@@ -1,9 +1,9 @@
 defmodule Indicator.Ohlc.Worker do
   use GenServer
 
-  require Logger
-
   alias Core.Struct.TradeEvent
+
+  require Logger
 
   def start_link(symbol) do
     GenServer.start_link(__MODULE__, symbol)
