@@ -6,6 +6,12 @@ defmodule Hedgehog.Strategy.Naive do
   alias Hedgehog.Strategy.Naive.DynamicTraderSupervisor
   alias Hedgehog.Strategy.Naive.Trader
 
+  def get_positions(symbol) do
+    symbol
+    |> String.upcase()
+    |> Trader.get_positions()
+  end
+
   def start_trading(symbol) do
     symbol
     |> String.upcase()
@@ -22,11 +28,5 @@ defmodule Hedgehog.Strategy.Naive do
     symbol
     |> String.upcase()
     |> DynamicTraderSupervisor.shutdown_worker()
-  end
-
-  def get_positions(symbol) do
-    symbol
-    |> String.upcase()
-    |> Trader.get_positions()
   end
 end

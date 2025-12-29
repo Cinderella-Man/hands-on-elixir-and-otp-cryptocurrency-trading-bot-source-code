@@ -6,19 +6,18 @@ defmodule Hedgehog.Exchange.Order do
   schema "orders" do
     field(:client_order_id, :string)
     field(:symbol, :string)
-    field(:price, :string)
-    field(:original_quantity, :string)
-    field(:executed_quantity, :string)
-    field(:cummulative_quote_quantity, :string)
+    field(:price, :decimal)
+    field(:original_quantity, :decimal)
+    field(:executed_quantity, :decimal)
+    field(:cummulative_quote_quantity, :decimal)
     field(:status, :string)
     field(:time_in_force, :string)
     field(:type, :string)
     field(:side, :string)
-    field(:stop_price, :string)
-    field(:iceberg_quantity, :string)
+    field(:stop_price, :decimal)
+    field(:iceberg_quantity, :decimal)
     field(:time, :integer)
     field(:update_time, :integer)
-
     timestamps()
   end
 end

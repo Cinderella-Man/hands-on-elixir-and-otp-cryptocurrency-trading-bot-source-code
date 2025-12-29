@@ -12,8 +12,6 @@ defmodule Hedgehog.Application do
       Hedgehog.Repo,
       {DNSCluster, query: Application.get_env(:hedgehog, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: Hedgehog.PubSub},
-      # Start the Finch HTTP client for sending emails
-      {Finch, name: Hedgehog.Finch},
       # Start a worker by calling: Hedgehog.Worker.start_link(arg)
       # {Hedgehog.Worker, arg},
       # Start to serve requests, typically the last entry

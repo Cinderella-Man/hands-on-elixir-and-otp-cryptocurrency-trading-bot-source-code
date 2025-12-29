@@ -12,7 +12,7 @@ defmodule Hedgehog.Repo.Migrations.CreateNaiveStrategySettings do
       add(:chunks, :integer, null: false)
       add(:budget, :decimal, null: false)
       add(:buy_down_interval, :decimal, null: false)
-      add(:profit_interval, :decimal, null: false)
+      add(:profit_target, :decimal, null: false)
       add(:rebuy_interval, :decimal, null: false)
       add(:status, SettingsStatusEnum.type(), default: "off", null: false)
 

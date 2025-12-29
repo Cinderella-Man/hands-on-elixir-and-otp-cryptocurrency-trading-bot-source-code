@@ -3,9 +3,9 @@ defmodule Hedgehog.Data.Collector.DynamicWorkerSupervisor do
 
   require Logger
 
-  alias Hedgehog.Repo
   alias Hedgehog.Data.Collector.Settings
   alias Hedgehog.Data.Collector.Worker
+  alias Hedgehog.Repo
 
   import Ecto.Query, only: [from: 2]
 
@@ -41,18 +41,6 @@ defmodule Hedgehog.Data.Collector.DynamicWorkerSupervisor do
     stop_child(topic)
   end
 
-  defp update_status(topic, status)
-       when is_binary(topic) and is_binary(status) do
-    %Settings{
-      topic: topic,
-      status: status
-    }
-    |> Repo.insert(
-      on_conflict: :replace_all,
-      conflict_target: :topic
-    )
-  end
-
   defp start_child(args) do
     DynamicSupervisor.start_child(
       __MODULE__,
@@ -65,5 +53,17 @@ defmodule Hedgehog.Data.Collector.DynamicWorkerSupervisor do
       [{pid, _}] -> DynamicSupervisor.terminate_child(__MODULE__, pid)
       _ -> Logger.warning("Unable to locate process assigned to #{inspect(args)}")
     end
+  end
+
+  defp update_status(topic, status)
+       when is_binary(topic) and is_binary(status) do
+    %Settings{
+      topic: topic,
+      status: status
+    }
+    |> Repo.insert(
+      on_conflict: :replace_all,
+      conflict_target: :topic
+    )
   end
 end

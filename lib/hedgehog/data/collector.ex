@@ -2,6 +2,7 @@ defmodule Hedgehog.Data.Collector do
   @moduledoc """
   Documentation for `Hedgehog.Data.Collector`.
   """
+
   alias Hedgehog.Data.Collector.DynamicWorkerSupervisor
 
   def start_storing(stream, symbol) do

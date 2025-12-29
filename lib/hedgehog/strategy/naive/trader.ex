@@ -6,12 +6,12 @@ defmodule Hedgehog.Strategy.Naive.Trader do
 
   require Logger
 
-  @registry :naive_traders
-
   defmodule State do
     @enforce_keys [:settings, :positions]
     defstruct [:settings, positions: []]
   end
+
+  @registry :naive_traders
 
   def start_link(symbol) do
     symbol = String.upcase(symbol)
@@ -77,6 +77,10 @@ defmodule Hedgehog.Strategy.Naive.Trader do
     end
   end
 
+  defp via_tuple(symbol) do
+    {:via, Registry, {@registry, symbol}}
+  end
+
   defp call_trader(symbol, data) do
     case Registry.lookup(@registry, symbol) do
       [{pid, _}] ->
@@ -89,9 +93,5 @@ defmodule Hedgehog.Strategy.Naive.Trader do
         Logger.warning("Unable to locate trader process assigned to #{symbol}")
         {:error, :unable_to_locate_trader}
     end
-  end
-
-  defp via_tuple(symbol) do
-    {:via, Registry, {@registry, symbol}}
   end
 end

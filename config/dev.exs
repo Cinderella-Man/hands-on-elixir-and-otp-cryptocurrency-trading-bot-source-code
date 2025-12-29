@@ -19,11 +19,11 @@ config :hedgehog, Hedgehog.Repo,
 config :hedgehog, HedgehogWeb.Endpoint,
   # Binding to loopback ipv4 address prevents access from other machines.
   # Change to `ip: {0, 0, 0, 0}` to allow access from other machines.
-  http: [ip: {127, 0, 0, 1}, port: 4000],
+  http: [ip: {127, 0, 0, 1}],
   check_origin: false,
   code_reloader: true,
   debug_errors: true,
-  secret_key_base: "HDbrupTnpN4wlJnXdjIa18F/TbblfT74dVa98LdNINLR3cqVnK6JwhjmnPdcnYy+",
+  secret_key_base: "ey1/23ez5+WeFYJDiPJhw87mQNmkrP5dhZQ32kIF9eNuJZfnH4NfZCQY1tokQY/n",
   watchers: [
     esbuild: {Esbuild, :install_and_run, [:hedgehog, ~w(--sourcemap=inline --watch)]},
     tailwind: {Tailwind, :install_and_run, [:hedgehog, ~w(--watch)]}
@@ -52,13 +52,18 @@ config :hedgehog, HedgehogWeb.Endpoint,
 # configured to run both http and https servers on
 # different ports.
 
-# Watch static and templates for browser reloading.
+# Reload browser tabs when matching files change.
 config :hedgehog, HedgehogWeb.Endpoint,
   live_reload: [
+    web_console_logger: true,
     patterns: [
-      ~r"priv/static/(?!uploads/).*(js|css|png|jpeg|jpg|gif|svg)$",
-      ~r"priv/gettext/.*(po)$",
-      ~r"lib/hedgehog_web/(controllers|live|components)/.*(ex|heex)$"
+      # Static assets, except user uploads
+      ~r"priv/static/(?!uploads/).*\.(js|css|png|jpeg|jpg|gif|svg)$"E,
+      # Gettext translations
+      ~r"priv/gettext/.*\.po$"E,
+      # Router, Controllers, LiveViews and LiveComponents
+      ~r"lib/hedgehog_web/router\.ex$"E,
+      ~r"lib/hedgehog_web/(controllers|live|components)/.*\.(ex|heex)$"E
     ]
   ]
 
@@ -66,7 +71,7 @@ config :hedgehog, HedgehogWeb.Endpoint,
 config :hedgehog, dev_routes: true
 
 # Do not include metadata nor timestamps in development logs
-config :logger, :console, format: "[$level] $message\n"
+config :logger, :default_formatter, format: "[$level] $message\n"
 
 # Set a higher stacktrace during development. Avoid configuring such
 # in production as building large stacktraces may be expensive.
@@ -76,8 +81,10 @@ config :phoenix, :stacktrace_depth, 20
 config :phoenix, :plug_init_mode, :runtime
 
 config :phoenix_live_view,
-  # Include HEEx debug annotations as HTML comments in rendered markup
+  # Include debug annotations and locations in rendered markup.
+  # Changing this configuration will require mix clean and a full recompile.
   debug_heex_annotations: true,
+  debug_attributes: true,
   # Enable helpful, but potentially expensive runtime checks
   enable_expensive_runtime_checks: true
 

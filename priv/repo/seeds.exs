@@ -23,19 +23,23 @@ base_settings = %{
 
 Logger.info("Inserting default streamer settings for symbols")
 
-maps =
+total_count =
   symbols
   |> Enum.map(&%{base_settings | symbol: &1["symbol"]})
+  |> Enum.chunk_every(1000)
+  |> Enum.reduce(0, fn batch, acc ->
+    {count, nil} = Repo.insert_all(StreamerSettings, batch, on_conflict: :nothing)
+    Logger.info("Inserted batch of #{count} symbols")
+    acc + count
+  end)
 
-{count, nil} = Repo.insert_all(StreamerSettings, maps, on_conflict: :nothing)
-
-Logger.info("Inserted streamer settings for #{count} symbols")
+Logger.info("Inserted streamer settings for #{total_count} symbols")
 
 %{
   chunks: chunks,
   budget: budget,
   buy_down_interval: buy_down_interval,
-  profit_interval: profit_interval,
+  profit_target: profit_target,
   rebuy_interval: rebuy_interval
 } = Application.compile_env(:hedgehog, [:strategy, :naive, :defaults])
 
@@ -44,7 +48,7 @@ base_settings = %{
   chunks: chunks,
   budget: Decimal.new(budget),
   buy_down_interval: Decimal.new(buy_down_interval),
-  profit_interval: Decimal.new(profit_interval),
+  profit_target: Decimal.new(profit_target),
   rebuy_interval: Decimal.new(rebuy_interval),
   status: "off",
   inserted_at: timestamp,
@@ -53,9 +57,14 @@ base_settings = %{
 
 Logger.info("Inserting default naive strategy settings for symbols")
 
-maps =
+total_count =
   symbols
   |> Enum.map(&%{base_settings | symbol: &1["symbol"]})
+  |> Enum.chunk_every(1000)
+  |> Enum.reduce(0, fn batch, acc ->
+    {count, nil} = Repo.insert_all(NaiveStrategySettings, batch, on_conflict: :nothing)
+    Logger.info("Inserted batch of #{count} naive settings")
+    acc + count
+  end)
 
-{count, nil} = Repo.insert_all(NaiveStrategySettings, maps, on_conflict: :nothing)
-Logger.info("Inserted naive strategy settings for #{count} symbols")
+Logger.info("Inserted naive strategy settings for #{total_count} symbols")

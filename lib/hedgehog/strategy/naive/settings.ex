@@ -10,7 +10,7 @@ defmodule Hedgehog.Strategy.Naive.Settings do
     field(:chunks, :integer)
     field(:budget, :decimal)
     field(:buy_down_interval, :decimal)
-    field(:profit_interval, :decimal)
+    field(:profit_target, :decimal)
     field(:rebuy_interval, :decimal)
     field(:status, SettingsStatusEnum)
 

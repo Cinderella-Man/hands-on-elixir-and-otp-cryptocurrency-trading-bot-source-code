@@ -17,13 +17,13 @@ config :hedgehog, Hedgehog.Repo,
 # you can enable the server option below.
 config :hedgehog, HedgehogWeb.Endpoint,
   http: [ip: {127, 0, 0, 1}, port: 4002],
-  secret_key_base: "u4SnaEsjVxIWXlXbh0whcMGk5lclkvT8KKUd4qhcsil8aT+JMttDSnDHU6jTY4D1",
+  secret_key_base: "O48f6w+zt4s9342UK5HLJuXwZItK4VZtDNappWGhpvaZTK9kxvhMIVT8hr7ccf/f",
   server: false
 
-# In test we don't send emails.
+# In test we don't send emails
 config :hedgehog, Hedgehog.Mailer, adapter: Swoosh.Adapters.Test
 
-# Disable swoosh api client as it is only required for production adapters.
+# Disable swoosh api client as it is only required for production adapters
 config :swoosh, :api_client, false
 
 # Print only warnings and errors during test
@@ -32,6 +32,10 @@ config :logger, level: :warning
 # Initialize plugs at runtime for faster test compilation
 config :phoenix, :plug_init_mode, :runtime
 
+# Enable helpful, but potentially expensive runtime checks
 config :phoenix_live_view,
-  # Enable helpful, but potentially expensive runtime checks
   enable_expensive_runtime_checks: true
+
+# Sort query params output of verified routes for robust url comparisons
+config :phoenix,
+  sort_verified_routes_query_params: true

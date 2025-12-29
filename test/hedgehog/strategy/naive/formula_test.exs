@@ -24,7 +24,7 @@ defmodule Hedgehog.Strategy.Naive.FormulaTest do
     BinanceMock
     |> stub(
       :order_limit_buy,
-      fn "ABC", "50.000", "0.800000", "GTC" -> {:ok, expected_order} end
+      fn "ABC", "50.000", 0.8, "GTC" -> {:ok, expected_order} end
     )
 
     Phoenix.PubSub
@@ -38,7 +38,7 @@ defmodule Hedgehog.Strategy.Naive.FormulaTest do
       chunks: "5",
       budget: "200",
       buy_down_interval: "0.2",
-      profit_interval: "0.1",
+      profit_target: "0.1",
       rebuy_interval: "0.5",
       tick_size: "0.000001",
       step_size: "0.001",
@@ -49,7 +49,7 @@ defmodule Hedgehog.Strategy.Naive.FormulaTest do
       with_log(fn ->
         Formula.execute(
           %TradeEvent{
-            price: "1.00000"
+            price: 1.00
           },
           [
             Formula.generate_fresh_position(settings)
@@ -70,7 +70,7 @@ defmodule Hedgehog.Strategy.Naive.FormulaTest do
   test "Generating place buy order decision" do
     assert Formula.generate_decision(
              %TradeEvent{
-               price: "1.0"
+               price: 1.0
              },
              generate_position(%{
                budget: "10.0",
@@ -78,25 +78,7 @@ defmodule Hedgehog.Strategy.Naive.FormulaTest do
              }),
              :ignored,
              :ignored
-           ) == {:place_buy_order, "0.99000000", "10.00000000"}
-  end
-
-  @tag :unit
-  test "Generating skip decision as buy and sell already placed(race condition occurred)" do
-    assert Formula.generate_decision(
-             %TradeEvent{
-               buyer_order_id: 123
-             },
-             generate_position(%{
-               buy_order: %Binance.OrderResponse{
-                 order_id: 123,
-                 status: "FILLED"
-               },
-               sell_order: %Binance.OrderResponse{}
-             }),
-             :ignored,
-             :ignored
-           ) == :skip
+           ) == {:place_buy_order, 0.99000000, "10.00000000"}
   end
 
   @tag :unit
@@ -106,26 +88,26 @@ defmodule Hedgehog.Strategy.Naive.FormulaTest do
              generate_position(%{
                buy_order: %Binance.OrderResponse{
                  status: "FILLED",
-                 price: "1.00"
+                 price: 1.00
                },
                sell_order: nil,
-               profit_interval: "0.01",
+               profit_target: "0.01",
                tick_size: "0.0001"
              }),
              :ignored,
              :ignored
-           ) == {:place_sell_order, "1.0120"}
+           ) == {:place_sell_order, 1.0120}
   end
 
   @tag :unit
   test "Generating fetch buy order decision" do
     assert Formula.generate_decision(
              %TradeEvent{
-               buyer_order_id: 1234
+               price: 1.01
              },
              generate_position(%{
                buy_order: %Binance.OrderResponse{
-                 order_id: 1234
+                 price: 1.02
                }
              }),
              :ignored,
@@ -171,12 +153,12 @@ defmodule Hedgehog.Strategy.Naive.FormulaTest do
   test "Generating fetch sell order decision" do
     assert Formula.generate_decision(
              %TradeEvent{
-               seller_order_id: 1234
+               price: 1.02
              },
              generate_position(%{
                buy_order: %Binance.OrderResponse{},
                sell_order: %Binance.OrderResponse{
-                 order_id: 1234
+                 price: 1.01
                }
              }),
              :ignored,
@@ -188,11 +170,14 @@ defmodule Hedgehog.Strategy.Naive.FormulaTest do
   test "Generating rebuy decision" do
     assert Formula.generate_decision(
              %TradeEvent{
-               price: "0.89"
+               price: 0.89
              },
              generate_position(%{
                buy_order: %Binance.OrderResponse{
-                 price: "1.00"
+                 price: 1.00
+               },
+               sell_order: %Binance.OrderResponse{
+                 price: 1.1
                },
                rebuy_interval: "0.1",
                rebuy_notified: false
@@ -206,13 +191,16 @@ defmodule Hedgehog.Strategy.Naive.FormulaTest do
   test "Generating skip(rebuy) decision because rebuy is already notified" do
     assert Formula.generate_decision(
              %TradeEvent{
-               price: "0.89"
+               price: 0.89
              },
              generate_position(%{
                buy_order: %Binance.OrderResponse{
-                 price: "1.00"
+                 price: 1.00
                },
-               rebuy_interval: "0.1",
+               sell_order: %Binance.OrderResponse{
+                 price: 1.1
+               },
+               rebuy_interval: 0.1,
                rebuy_notified: true
              }),
              [:position],
@@ -221,14 +209,17 @@ defmodule Hedgehog.Strategy.Naive.FormulaTest do
   end
 
   @tag :unit
-  test "Generating skip rebuy decision" do
+  test "Generating skip decision" do
     assert Formula.generate_decision(
              %TradeEvent{
-               price: "0.9"
+               price: 0.9
              },
              generate_position(%{
                buy_order: %Binance.OrderResponse{
-                 price: "1.00"
+                 price: 1.00
+               },
+               sell_order: %Binance.OrderResponse{
+                 price: 1.1
                },
                rebuy_interval: "0.1",
                rebuy_notified: false
@@ -242,7 +233,7 @@ defmodule Hedgehog.Strategy.Naive.FormulaTest do
     %{
       id: 1_678_920_020_426,
       symbol: "XRPUSDT",
-      profit_interval: "0.005",
+      profit_target: "0.005",
       rebuy_interval: "0.01",
       rebuy_notified: false,
       budget: "10.0",

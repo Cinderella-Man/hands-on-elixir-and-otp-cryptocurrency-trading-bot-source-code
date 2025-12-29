@@ -1,7 +1,7 @@
 defmodule Hedgehog.Data.Aggregator.Ohlc do
-  require Logger
-
   alias Hedgehog.Exchange.TradeEvent
+
+  require Logger
 
   @enforce_keys [
     :symbol,
@@ -21,7 +21,6 @@ defmodule Hedgehog.Data.Aggregator.Ohlc do
 
   def process([_ | _] = ohlcs, %TradeEvent{} = trade_event) do
     {old_ohlcs, new_ohlcs} = merge_prices(ohlcs, trade_event.price, trade_event.trade_time)
-
     old_ohlcs |> Enum.each(&maybe_broadcast/1)
     new_ohlcs
   end

@@ -38,6 +38,8 @@ defmodule Hedgehog.Data.Collector.Worker do
     opts =
       trade_event
       |> Map.from_struct()
+      |> Map.update!(:price, &Decimal.from_float/1)
+      |> Map.update!(:quantity, &Decimal.new/1)
 
     struct!(TradeEvent, opts)
     |> Repo.insert()
@@ -49,13 +51,15 @@ defmodule Hedgehog.Data.Collector.Worker do
     data =
       order
       |> Map.from_struct()
+      |> Map.update!(:price, &Decimal.from_float/1)
+      |> Map.update!(:stop_price, &Decimal.new/1)
 
     struct(Order, data)
     |> Map.merge(%{
-      original_quantity: order.orig_qty,
-      executed_quantity: order.executed_qty,
-      cummulative_quote_quantity: order.cummulative_quote_qty,
-      iceberg_quantity: order.iceberg_qty
+      original_quantity: Decimal.new(order.orig_qty),
+      executed_quantity: Decimal.new(order.executed_qty),
+      cummulative_quote_quantity: Decimal.new(order.cummulative_quote_qty),
+      iceberg_quantity: Decimal.new(order.iceberg_qty)
     })
     |> Repo.insert(
       on_conflict: :replace_all,
@@ -66,6 +70,6 @@ defmodule Hedgehog.Data.Collector.Worker do
   end
 
   defp via_tuple(topic) do
-    {:via, Registry, {:collector_workers, topic}}
+    {:via, Registry, {:collector_workers, String.upcase(topic)}}
   end
 end

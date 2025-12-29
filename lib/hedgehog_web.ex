@@ -38,12 +38,11 @@ defmodule HedgehogWeb do
 
   def controller do
     quote do
-      use Phoenix.Controller,
-        formats: [:html, :json],
-        layouts: [html: HedgehogWeb.Layouts]
+      use Phoenix.Controller, formats: [:html, :json]
+
+      use Gettext, backend: HedgehogWeb.Gettext
 
       import Plug.Conn
-      import HedgehogWeb.Gettext
 
       unquote(verified_routes())
     end
@@ -51,8 +50,7 @@ defmodule HedgehogWeb do
 
   def live_view do
     quote do
-      use Phoenix.LiveView,
-        layout: {HedgehogWeb.Layouts, :app}
+      use Phoenix.LiveView
 
       unquote(html_helpers())
     end
@@ -81,14 +79,17 @@ defmodule HedgehogWeb do
 
   defp html_helpers do
     quote do
+      # Translation
+      use Gettext, backend: HedgehogWeb.Gettext
+
       # HTML escaping functionality
       import Phoenix.HTML
-      # Core UI components and translation
+      # Core UI components
       import HedgehogWeb.CoreComponents
-      import HedgehogWeb.Gettext
 
-      # Shortcut for generating JS commands
+      # Common modules used in templates
       alias Phoenix.LiveView.JS
+      alias HedgehogWeb.Layouts
 
       # Routes generation with the ~p sigil
       unquote(verified_routes())

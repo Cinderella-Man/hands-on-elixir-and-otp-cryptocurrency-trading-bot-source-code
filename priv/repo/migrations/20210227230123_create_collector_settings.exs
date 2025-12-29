@@ -1,4 +1,4 @@
-defmodule Hedgehog.Repo.Migrations.CreateSubscriberSettings do
+defmodule Hedgehog.Repo.Migrations.CreateCollectorSettings do
   use Ecto.Migration
 
   alias Hedgehog.Data.Collector.SettingsStatusEnum

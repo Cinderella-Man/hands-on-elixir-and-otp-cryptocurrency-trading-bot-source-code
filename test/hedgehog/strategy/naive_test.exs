@@ -2,9 +2,12 @@ defmodule Hedgehog.Strategy.NaiveTest do
   use ExUnit.Case
   doctest Hedgehog.Strategy.Naive
 
+  alias Hedgehog.Data.Collector
   alias Hedgehog.Exchange.Order
-  alias Hedgehog.Strategy.Naive.Settings, as: TradingSettings
   alias Hedgehog.Exchange.TradeEvent
+  alias Hedgehog.Repo
+  alias Hedgehog.Strategy.Naive
+  alias Hedgehog.Strategy.Naive.Settings, as: TradingSettings
 
   import Ecto.Query, only: [from: 2]
 
@@ -15,7 +18,7 @@ defmodule Hedgehog.Strategy.NaiveTest do
     # Step 1 - Update trading settings
 
     settings = [
-      profit_interval: 0.001,
+      profit_target: 0.001,
       buy_down_interval: 0.0025,
       chunks: 5,
       budget: 100.0
@@ -23,9 +26,9 @@ defmodule Hedgehog.Strategy.NaiveTest do
 
     {:ok, _} =
       TradingSettings
-      |> Naive.Repo.get_by!(symbol: symbol)
+      |> Repo.get_by!(symbol: symbol)
       |> Ecto.Changeset.change(settings)
-      |> Naive.Repo.update()
+      |> Repo.update()
 
     # Step 2 - Start trading on symbol
 
@@ -33,36 +36,39 @@ defmodule Hedgehog.Strategy.NaiveTest do
 
     # Step 3 - Start storing orders
 
-    DataWarehouse.start_storing("ORDERS", "XRPUSDT")
+    Collector.start_storing("ORDERS", symbol)
     :timer.sleep(5000)
 
-    # Step 4 - Broadcast 10 events
+    # Step 4 - Broadcast 8 events
 
     [
-      # buy order palced @ 0.4307
-      generate_event(1, "0.43183010", "213.10000000"),
-      generate_event(2, "0.43183020", "56.10000000"),
-      generate_event(3, "0.43183030", "12.10000000"),
+      # below event will trigger
+      # buy order placed @ 0.4307
+      generate_event(1, 0.43183010, "213.10000000"),
+      # above the buy price - ignored
+      generate_event(2, 0.43183020, "56.10000000"),
+      # above the buy price - ignored
+      generate_event(3, 0.43183030, "12.10000000"),
       # event at the expected buy price
-      generate_event(4, "0.4307", "38.92000000"),
+      # it should trigger fetching the buy order
+      generate_event(4, 0.4307, "38.92000000"),
       # event below the expected buy price
-      # it should trigger fake fill event for placed buy order
-      # and palce sell order @ 0.4319
-      generate_event(5, "0.43065", "126.53000000"),
-      # event below the expected sell price
-      generate_event(6, "0.43189", "26.18500000"),
+      # normally ignored but after fetching the buy order
+      # it should trigger placing a sell order @ 0.4319
+      generate_event(5, 0.43065, "126.53000000"),
       # event at exact the expected sell price
-      generate_event(7, "0.4319", "62.92640000"),
-      # event above the expected sell price
-      # it should trigger fake fill event for placed sell order
-      generate_event(8, "0.43205", "345.14235000"),
-      # this one should trigger buy order for a new trader process
-      generate_event(9, "0.43205", "345.14235000"),
-      generate_event(10, "0.43210", "3201.86480000")
+      # it should trigger fetching the sell order
+      generate_event(6, 0.4319, "62.92640000"),
+      # event after fetching the sell order
+      # causes trader process to exit
+      generate_event(7, 0.43205, "345.14235000"),
+      # below event will trigger
+      # buy order placed @ 0.431
+      generate_event(8, 0.43210, "3201.86480000")
     ]
     |> Enum.each(fn event ->
       Phoenix.PubSub.broadcast(
-        Core.PubSub,
+        Hedgehog.PubSub,
         "TRADE_EVENTS:#{symbol}",
         event
       )
@@ -81,11 +87,11 @@ defmodule Hedgehog.Strategy.NaiveTest do
         where: o.symbol == ^symbol
       )
 
-    [buy_1, sell_1, buy_2] = DataWarehouse.Repo.all(query)
+    [buy_1, sell_1, buy_2] = Repo.all(query)
 
-    assert buy_1 == ["0.43070000", "BUY", "FILLED"]
-    assert sell_1 == ["0.43190000", "SELL", "FILLED"]
-    assert buy_2 == ["0.43100000", "BUY", "NEW"]
+    assert buy_1 == [Decimal.new("0.4307"), "BUY", "FILLED"]
+    assert sell_1 == [Decimal.new("0.4319"), "SELL", "FILLED"]
+    assert buy_2 == [Decimal.new("0.431"), "BUY", "NEW"]
   end
 
   defp generate_event(id, price, quantity) do
@@ -96,8 +102,6 @@ defmodule Hedgehog.Strategy.NaiveTest do
       trade_id: 2_000 + id * 10,
       price: price,
       quantity: quantity,
-      buyer_order_id: 3_000 + id * 10,
-      seller_order_id: 4_000 + id * 10,
       trade_time: 5_000 + id * 10,
       buyer_market_maker: false
     }
