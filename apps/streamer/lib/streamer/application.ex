@@ -11,7 +11,7 @@ defmodule Streamer.Application do
       {Streamer.Repo, []},
       {
         Phoenix.PubSub,
-        name: Streamer.PubSub, adapter_name: Phoenix.PubSub.PG2
+        name: Streamer.PubSub
       },
       {Streamer.Supervisor, []}
     ]
