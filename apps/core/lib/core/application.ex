@@ -10,7 +10,7 @@ defmodule Core.Application do
     children = [
       {
         Phoenix.PubSub,
-        name: Core.PubSub, adapter_name: Phoenix.PubSub.PG2
+        name: Core.PubSub
       }
     ]
 

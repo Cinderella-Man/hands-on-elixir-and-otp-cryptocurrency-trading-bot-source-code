@@ -7,11 +7,12 @@ defmodule Hedgehog.MixProject do
       version: "0.1.0",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      aliases: aliases(),
-      preferred_cli_env: [
-        "test.unit": :test
-      ]
+      aliases: aliases()
     ]
+  end
+
+  def cli do
+    [preferred_envs: ["test.unit": :test]]
   end
 
   defp aliases do
