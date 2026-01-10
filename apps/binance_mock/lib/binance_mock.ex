@@ -114,7 +114,7 @@ defmodule BinanceMock do
     order_book =
       Map.get(
         order_books,
-        :"#{trade_event.symbol}",
+        trade_event.symbol,
         %OrderBook{}
       )
 
@@ -141,7 +141,7 @@ defmodule BinanceMock do
     order_books =
       Map.replace!(
         order_books,
-        :"#{trade_event.symbol}",
+        trade_event.symbol,
         %{
           buy_side: remaining_buy_orders,
           sell_side: remaining_sell_orders,
@@ -183,7 +183,7 @@ defmodule BinanceMock do
     order_book =
       Map.get(
         order_books,
-        :"#{symbol}",
+        symbol,
         %OrderBook{}
       )
 
@@ -252,7 +252,7 @@ defmodule BinanceMock do
          %Binance.Order{symbol: symbol} = order,
          order_books
        ) do
-    order_book = Map.get(order_books, :"#{symbol}", %OrderBook{})
+    order_book = Map.get(order_books, symbol, %OrderBook{})
 
     order_book =
       if order.side == "SELL" do
@@ -265,7 +265,7 @@ defmodule BinanceMock do
         %{order_book | buy_side: updated_buy_side}
       end
 
-    Map.put(order_books, :"#{symbol}", order_book)
+    Map.put(order_books, symbol, order_book)
   end
 
   defp insert_sorted(order, orders, sorter) do

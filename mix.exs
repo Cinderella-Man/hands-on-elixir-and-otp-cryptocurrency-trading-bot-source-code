@@ -12,9 +12,7 @@ defmodule Hedgehog.MixProject do
   end
 
   def cli do
-    [
-      preferred_envs: ["test.unit": :test]
-    ]
+    [preferred_envs: ["test.unit": :test]]
   end
 
   defp aliases do
