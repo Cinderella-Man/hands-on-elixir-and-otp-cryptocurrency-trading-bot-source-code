@@ -1,18 +1,138 @@
-# Hedgehog
+# Hands-on Elixir & OTP: Cryptocurrency Trading Bot
 
-To start your Phoenix server:
+Resouces related to the "Hands-on Elixir & OTP: Cryptocurrency Trading Bot" book that is available free online at [elixircryptobot.com](https://www.elixircryptobot.com).
 
-* Run `mix setup` to install and setup dependencies
-* Start Phoenix endpoint with `mix phx.server` or inside IEx with `iex -S mix phx.server`
+## Limit of Liability/Disclaimer of Warranty
 
-Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-Ready to run in production? Please [check our deployment guides](https://hexdocs.pm/phoenix/deployment.html).
 
-## Learn more
+## Intial setup
 
-* Official website: https://www.phoenixframework.org/
-* Guides: https://hexdocs.pm/phoenix/overview.html
-* Docs: https://hexdocs.pm/phoenix
-* Forum: https://elixirforum.com/c/phoenix-forum
-* Source: https://github.com/phoenixframework/phoenix
+1. Install the required dependencies:
+
+```
+$ mix deps.get
+...
+```
+
+2. Start Postgres instance inside docker:
+
+```
+$ docker compose up -d
+Creating hedgehog_db_1 ... done
+```
+
+3. Create, migrate and seed databases inside the Postgres instance:
+
+```
+$ mix setup
+```
+
+## Further setup (danger zone)
+
+Inside the configuration file(`config/config.exs`) there's a setting(`config :naive, binance_client`) specifying which Binance client should be used. By default, it's the `BinanceMock` module that *won't* connect to the Binance exchange at all neither it will require any access configuration as it stores orders in memory.
+
+To connect to the Binance exchange and make real trades the configuration needs to be changed to the `Binance` client:
+
+```
+# /config/config.exs:L25
+binance_client: BinanceMock, # change to: binance_client: Binance,
+```
+
+as well as `api_key` and `secret_key` need to be set:
+
+```
+# /config/config.exs:L49
+config :binance,
+  api_key: "insert value here",
+  secret_key: "insert value here"
+```
+
+## Running
+
+```
+iex -S mix
+
+# connect to the Binance and stream into PubSub
+iex(1)> Hedgehog.Streamer.Binance.start_streaming("xrpusdt")
+
+# to aggregate OHLC data
+iex(2)> Hedgehog.Data.Aggregator.aggregate_ohlcs("XRPUSDT")
+
+# to store trade_events in db
+iex(3)> Hedgehog.Data.Collector.start_storing("trade_events", "xrpusdt")
+
+# to store orders in db
+iex(4)> Hedgehog.Data.Collector.start_storing("orders", "xrpusdt")
+
+# turn on naive strategy
+iex(5)> Hedgehog.Strategy.Naive.start_trading("xrpusdt")
+```
+
+## Postgres cheat sheet
+
+```
+psql -U postgres -h 127.0.0.1
+Password for user postgres: postgres
+...
+postgres=# \c hedgehog_dev
+...
+postgres=# \x
+...
+data_warehouse=# SELECT COUNT(*) FROM trade_events;
+...
+data_warehouse=# SELECT COUNT(*) FROM orders;
+```
+
+## Loading backtesting data
+
+```
+cd /tmp
+
+wget https://github.com/Cinderella-Man/binance-trade-events/raw/master/XRPUSDT/XRPUSDT-2019-06-03.csv.gz
+
+gunzip XRPUSDT-2019-06-03.csv.gz
+
+awk -F';' 'BEGIN {OFS=";"} {print $1,$2,$3,$4,$5,$6,$7,$10,$11,$12,$13}' \
+/tmp/XRPUSDT-2019-06-03.csv | \
+PGPASSWORD=postgres psql -Upostgres -h localhost -ddata_warehouse \
+-c "\COPY trade_events FROM STDIN WITH (FORMAT csv, delimiter ';');"
+```
+
+## Running backtesting
+
+```
+iex(1)> Hedgehog.Data.Collector.start_storing("orders", "xrpusdt")
+
+iex(2)> Hedgehog.Strategy.Naive.start_trading("xrpusdt")
+
+iex(3)> Hedgehog.Data.Publisher.start(%{
+  type: :trade_events,
+  symbol: "XRPUSDT",
+  from: "2019-06-02",
+  to: "2019-06-04",
+  interval: 5
+})
+```
+
+Orders data can be dumped to the CSV file for comparision:
+
+```
+$ PGPASSWORD=postgres psql -Upostgres -h localhost data_warehouse
+data_warehouse=# \copy (SELECT order_id, client_order_id, symbol, price,original_quantity, executed_quantity, cummulative_quote_quantity, status, time_in_force, type, side, stop_price, iceberg_quantity FROM orders) TO '/tmp/orders.csv' DELIMITER ',' CSV HEADER
+COPY 322
+data_warehouse=# \q
+```
+
+## Running unit test
+
+```
+mix test.unit
+```
+
+## Running integration test
+
+```
+MIX_ENV=integration mix test.integration
+```
