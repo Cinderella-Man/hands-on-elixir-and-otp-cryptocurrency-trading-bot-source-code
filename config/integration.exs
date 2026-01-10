@@ -1,10 +1,9 @@
 import Config
 
-config :binance_mock,
-  use_cached_exchange_info: true
-
-config :streamer, Streamer.Repo, database: "streamer_test"
-
-config :naive, Naive.Repo, database: "naive_test"
-
-config :data_warehouse, DataWarehouse.Repo, database: "data_warehouse_test"
+config :hedgehog, Hedgehog.Repo,
+  username: "postgres",
+  password: "postgres",
+  hostname: "localhost",
+  database: "hedgehog_test#{System.get_env("MIX_TEST_PARTITION")}",
+  pool: Ecto.Adapters.SQL.Sandbox,
+  pool_size: System.schedulers_online() * 2
