@@ -143,41 +143,32 @@ defmodule BinanceMock do
     order_book =
       Map.get(
         order_books,
-        :"#{trade_event.symbol}",
+        trade_event.symbol,
         %OrderBook{}
       )
 
     trade_price = D.from_float(trade_event.price)
 
-    filled_buy_orders =
+    {to_fill_buy_orders, remaining_buy_orders} =
       order_book.buy_side
-      |> Enum.take_while(&D.lte?(trade_price, D.from_float(&1.price)))
-      |> Enum.map(&Map.replace!(&1, :status, :filled))
+      |> Enum.split_while(&D.lte?(trade_price, D.from_float(&1.price)))
 
-    filled_sell_orders =
+    {to_fill_sell_orders, remaining_sell_orders} =
       order_book.sell_side
-      |> Enum.take_while(&D.gte?(trade_price, D.from_float(&1.price)))
+      |> Enum.split_while(&D.gte?(trade_price, D.from_float(&1.price)))
+
+    filled_orders =
+      (to_fill_buy_orders ++ to_fill_sell_orders)
       |> Enum.map(&Map.replace!(&1, :status, :filled))
-
-    remaining_buy_orders =
-      order_book.buy_side
-      |> Enum.drop(length(filled_buy_orders))
-
-    remaining_sell_orders =
-      order_book.sell_side
-      |> Enum.drop(length(filled_sell_orders))
 
     order_books =
-      Map.replace!(
+      Map.put(
         order_books,
-        :"#{trade_event.symbol}",
+        trade_event.symbol,
         %{
           buy_side: remaining_buy_orders,
           sell_side: remaining_sell_orders,
-          historical:
-            filled_buy_orders ++
-              filled_sell_orders ++
-              order_book.historical
+          historical: filled_orders ++ order_book.historical
         }
       )
 
@@ -212,7 +203,7 @@ defmodule BinanceMock do
     order_book =
       Map.get(
         order_books,
-        :"#{symbol}",
+        symbol,
         %OrderBook{}
       )
 
