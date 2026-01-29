@@ -28,7 +28,7 @@ defmodule Streamer.MixProject do
     [
       {:jason, "~> 1.4"},
       {:phoenix_pubsub, "~> 2.0"},
-      {:websockex, "~> 0.4"}
+      {:websockex, "~> 0.5"}
     ]
   end
 end
