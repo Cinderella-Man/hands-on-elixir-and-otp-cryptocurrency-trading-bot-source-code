@@ -75,7 +75,7 @@ defmodule Hedgehog.MixProject do
       {:binance, "~> 1.0"},
       {:decimal, "~> 2.0"},
       {:ecto_enum, "~> 1.4"},
-      {:websockex, "~> 0.4.2"},
+      {:websockex, "~> 0.5"},
       {:mimic, "~> 1.7", only: [:test, :integration]}
     ]
   end
