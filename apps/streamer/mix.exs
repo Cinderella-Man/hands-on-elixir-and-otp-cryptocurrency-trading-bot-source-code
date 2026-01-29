@@ -32,7 +32,7 @@ defmodule Streamer.MixProject do
       {:jason, "~> 1.2"},
       {:phoenix_pubsub, "~> 2.0"},
       {:postgrex, ">= 0.0.0"},
-      {:websockex, "~> 0.4"}
+      {:websockex, "~> 0.5"}
     ]
   end
 end
