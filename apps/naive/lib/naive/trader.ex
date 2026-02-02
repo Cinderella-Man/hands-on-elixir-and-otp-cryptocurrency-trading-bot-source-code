@@ -28,8 +28,6 @@ defmodule Naive.Trader do
 
     Logger.info("Initializing new trader for #{symbol}")
 
-    tick_size = fetch_tick_size(symbol)
-
     Phoenix.PubSub.subscribe(
       Streamer.PubSub,
       "TRADE_EVENTS:#{symbol}"
@@ -39,8 +37,14 @@ defmodule Naive.Trader do
      %State{
        symbol: symbol,
        profit_target: profit_target,
-       tick_size: tick_size
-     }}
+       tick_size: nil
+     }, {:continue, :fetch_tick_size}}
+  end
+
+  def handle_continue(:fetch_tick_size, %State{symbol: symbol} = state) do
+    tick_size = fetch_tick_size(symbol)
+
+    {:noreply, %{state | tick_size: tick_size}}
   end
 
   def handle_info(
