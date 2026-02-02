@@ -224,9 +224,10 @@ defmodule Naive.Leader do
   end
 
   defp fetch_symbol_filters(symbol) do
+    {:ok, exchange_info} = @binance_client.get_exchange_info()
+
     symbol_filters =
-      @binance_client.get_exchange_info()
-      |> elem(1)
+      exchange_info
       |> Map.get(:symbols)
       |> Enum.find(&(&1["symbol"] == symbol))
       |> Map.get("filters")
