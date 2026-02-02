@@ -432,15 +432,15 @@ defmodule Naive.Strategy do
   end
 
   def fetch_symbol_settings(symbol) do
-    exchange_info = @binance_client.get_exchange_info()
+    {:ok, exchange_info} = @binance_client.get_exchange_info()
     db_settings = @repo.get_by!(Settings, symbol: symbol)
+
     merge_filters_into_settings(exchange_info, db_settings, symbol)
   end
 
   def merge_filters_into_settings(exchange_info, db_settings, symbol) do
     symbol_filters =
       exchange_info
-      |> elem(1)
       |> Map.get(:symbols)
       |> Enum.find(&(&1["symbol"] == symbol))
       |> Map.get("filters")
