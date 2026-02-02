@@ -41,6 +41,7 @@ defmodule Naive.Trader do
 
   def init(%State{id: id, symbol: symbol} = state) do
     symbol = String.upcase(symbol)
+
     Logger.info("Initializing new trader(#{id}) for #{symbol}")
 
     Phoenix.PubSub.subscribe(
