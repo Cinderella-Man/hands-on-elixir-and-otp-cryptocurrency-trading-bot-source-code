@@ -31,8 +31,7 @@ defmodule Naive.Trader do
        symbol: symbol,
        profit_target: profit_target,
        tick_size: nil
-     },
-     {:continue, :fetch_tick_size}}
+     }, {:continue, :fetch_tick_size}}
   end
 
   def handle_continue(:fetch_tick_size, %State{symbol: symbol} = state) do
