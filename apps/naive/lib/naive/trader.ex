@@ -23,15 +23,22 @@ defmodule Naive.Trader do
 
   def init(%{symbol: symbol, profit_target: profit_target}) do
     symbol = String.upcase(symbol)
+
     Logger.info("Initializing new trader for #{symbol}")
-    tick_size = fetch_tick_size(symbol)
 
     {:ok,
      %State{
        symbol: symbol,
        profit_target: profit_target,
-       tick_size: tick_size
-     }}
+       tick_size: nil
+     },
+     {:continue, :fetch_tick_size}}
+  end
+
+  def handle_continue(:fetch_tick_size, %State{symbol: symbol} = state) do
+    tick_size = fetch_tick_size(symbol)
+
+    {:noreply, %{state | tick_size: tick_size}}
   end
 
   def handle_cast(
