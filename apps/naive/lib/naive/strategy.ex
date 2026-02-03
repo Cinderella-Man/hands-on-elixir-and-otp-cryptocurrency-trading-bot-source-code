@@ -335,23 +335,16 @@ defmodule Naive.Strategy do
   end
 
   def calculate_sell_price(buy_price, profit_target, tick_size) do
-    fee = "1.001"
-    original_price = D.mult(D.from_float(buy_price), fee)
+    fee = D.new("1.001")
 
-    net_target_price =
-      D.mult(
-        original_price,
-        D.add("1.0", profit_target)
-      )
-
-    gross_target_price = D.mult(net_target_price, fee)
-
-    D.to_float(
-      D.mult(
-        D.div_int(gross_target_price, tick_size),
-        tick_size
-      )
-    )
+    buy_price
+    |> D.from_float()
+    |> D.mult(fee)
+    |> D.mult(D.add(D.new(1), profit_target))
+    |> D.mult(fee)
+    |> D.div_int(tick_size)
+    |> D.mult(tick_size)
+    |> D.to_float()
   end
 
   def calculate_buy_price(current_price, buy_down_interval, tick_size) do
@@ -363,25 +356,18 @@ defmodule Naive.Strategy do
         D.mult(current_price, buy_down_interval)
       )
 
-    D.to_float(
-      D.mult(
-        D.div_int(exact_buy_price, tick_size),
-        tick_size
-      )
-    )
+    exact_buy_price
+    |> D.div_int(tick_size)
+    |> D.mult(tick_size)
+    |> D.to_float()
   end
 
   def calculate_quantity(budget, price, step_size) do
-    # not necessarily legal quantity
-    exact_target_quantity = D.div(budget, D.from_float(price))
-
-    D.to_string(
-      D.mult(
-        D.div_int(exact_target_quantity, step_size),
-        step_size
-      ),
-      :normal
-    )
+    budget
+    |> D.div(D.from_float(price))
+    |> D.div_int(step_size)
+    |> D.mult(step_size)
+    |> D.to_string(:normal)
   end
 
   def trigger_rebuy?(buy_price, current_price, rebuy_interval) do
