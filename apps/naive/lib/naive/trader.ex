@@ -170,11 +170,9 @@ defmodule Naive.Trader do
         D.mult(current_price, buy_down_interval)
       )
 
-    D.to_float(
-      D.mult(
-        D.div_int(exact_buy_price, tick_size),
-        tick_size
-      )
-    )
+    exact_buy_price
+    |> D.div_int(tick_size)
+    |> D.mult(tick_size)
+    |> D.to_float()
   end
 end
