@@ -176,24 +176,17 @@ defmodule Naive.Trader do
         D.mult(current_price, buy_down_interval)
       )
 
-    D.to_float(
-      D.mult(
-        D.div_int(exact_buy_price, tick_size),
-        tick_size
-      )
-    )
+    exact_buy_price
+    |> D.div_int(tick_size)
+    |> D.mult(tick_size)
+    |> D.to_float()
   end
 
   defp calculate_quantity(budget, price, step_size) do
-    # not necessarily legal quantity
-    exact_target_quantity = D.div(budget, D.from_float(price))
-
-    D.to_string(
-      D.mult(
-        D.div_int(exact_target_quantity, step_size),
-        step_size
-      ),
-      :normal
-    )
+    budget
+    |> D.div(D.from_float(price))
+    |> D.div_int(step_size)
+    |> D.mult(step_size)
+    |> D.to_string(:normal)
   end
 end
