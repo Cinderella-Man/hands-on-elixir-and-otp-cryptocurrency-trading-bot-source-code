@@ -146,22 +146,15 @@ defmodule Naive.Trader do
   end
 
   defp calculate_sell_price(buy_price, profit_target, tick_size) do
-    fee = "1.001"
-    original_price = D.mult(D.from_float(buy_price), fee)
+    fee = D.new("1.001")
 
-    net_target_price =
-      D.mult(
-        original_price,
-        D.add("1.0", profit_target)
-      )
-
-    gross_target_price = D.mult(net_target_price, fee)
-
-    D.to_float(
-      D.mult(
-        D.div_int(gross_target_price, tick_size),
-        tick_size
-      )
-    )
+    buy_price
+    |> D.from_float()
+    |> D.mult(fee)
+    |> D.mult(D.add(D.new(1), profit_target))
+    |> D.mult(fee)
+    |> D.div_int(tick_size)
+    |> D.mult(tick_size)
+    |> D.to_float()
   end
 end
