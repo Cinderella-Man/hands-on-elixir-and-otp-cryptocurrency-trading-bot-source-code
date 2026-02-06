@@ -52,7 +52,7 @@ defmodule Naive.Strategy do
   end
 
   def generate_decisions([position | rest] = positions, generated_results, trade_event, settings) do
-    current_positions = positions ++ (generated_results |> Enum.map(&elem(&1, 0)))
+    current_positions = positions ++ (generated_results |> Enum.map(&elem(&1, 1)))
 
     case generate_decision(trade_event, position, current_positions, settings) do
       :exit ->
@@ -119,14 +119,15 @@ defmodule Naive.Strategy do
         },
         %Position{
           buy_order: %Exchange.Order{
-            price: buy_price
+            price: buy_price,
+            status: status
           },
           sell_order: nil
         },
         _positions,
         _settings
       )
-      when trade_price <= buy_price do
+      when status != "FILLED" and trade_price <= buy_price do
     :fetch_buy_order
   end
 
