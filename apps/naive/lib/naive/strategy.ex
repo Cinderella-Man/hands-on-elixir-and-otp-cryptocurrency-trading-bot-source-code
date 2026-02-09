@@ -116,15 +116,14 @@ defmodule Naive.Strategy do
         },
         %Position{
           buy_order: %Binance.OrderResponse{
-            price: buy_price,
-            status: status
+            price: buy_price
           },
           sell_order: nil
         },
         _positions,
         _settings
       )
-      when status != "FILLED" and trade_price <= buy_price do
+      when trade_price <= buy_price do
     :fetch_buy_order
   end
 
