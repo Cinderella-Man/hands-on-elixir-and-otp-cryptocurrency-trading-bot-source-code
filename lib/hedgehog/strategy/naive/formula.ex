@@ -458,7 +458,7 @@ defmodule Hedgehog.Strategy.Naive.Formula do
   end
 
   def update_status(symbol, status)
-      when is_binary(symbol) and is_binary(status) do
+      when is_binary(symbol) and status in [:on, :off, :shutdown] do
     Repo.get_by(Settings, symbol: symbol)
     |> Ecto.Changeset.change(%{status: status})
     |> Repo.update()

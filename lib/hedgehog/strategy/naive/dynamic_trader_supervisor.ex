@@ -23,7 +23,7 @@ defmodule Hedgehog.Strategy.Naive.DynamicTraderSupervisor do
   def autostart_workers do
     Repo.all(
       from(s in Settings,
-        where: s.status == "on",
+        where: s.status == :on,
         select: s.symbol
       )
     )
@@ -32,19 +32,19 @@ defmodule Hedgehog.Strategy.Naive.DynamicTraderSupervisor do
 
   def start_worker(symbol) do
     Logger.info("Starting trading on #{symbol}")
-    Formula.update_status(symbol, "on")
+    Formula.update_status(symbol, :on)
     start_child(symbol)
   end
 
   def stop_worker(symbol) do
     Logger.info("Stopping trading on #{symbol}")
-    Formula.update_status(symbol, "off")
+    Formula.update_status(symbol, :off)
     stop_child(symbol)
   end
 
   def shutdown_worker(symbol) when is_binary(symbol) do
     Logger.info("Shutdown of trading on #{symbol} initialized")
-    {:ok, settings} = Formula.update_status(symbol, "shutdown")
+    {:ok, settings} = Formula.update_status(symbol, :shutdown)
     Trader.notify(:settings_updated, settings)
     {:ok, settings}
   end

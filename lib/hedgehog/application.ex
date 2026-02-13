@@ -22,7 +22,7 @@ defmodule Hedgehog.Application do
       Hedgehog.Data.Collector.CollectorSupervisor,
       {DynamicSupervisor,
        strategy: :one_for_one, name: Hedgehog.Data.Aggregator.DynamicWorkerSupervisor}
-    ]
+    ] ++ litestream_children()
 
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options
@@ -36,5 +36,16 @@ defmodule Hedgehog.Application do
   def config_change(changed, _new, removed) do
     HedgehogWeb.Endpoint.config_change(changed, removed)
     :ok
+  end
+
+  defp litestream_children do
+    config = Application.get_env(:hedgehog, Hedgehog.Litestream, [])
+
+    if Keyword.get(config, :enabled, false) do
+      opts = Keyword.drop(config, [:enabled])
+      [{Litestream, opts}]
+    else
+      []
+    end
   end
 end

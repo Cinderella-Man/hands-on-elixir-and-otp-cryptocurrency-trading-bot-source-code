@@ -22,7 +22,7 @@ defmodule Hedgehog.Data.Collector.DynamicWorkerSupervisor do
   def autostart_workers do
     Repo.all(
       from(s in Settings,
-        where: s.status == "on",
+        where: s.status == :on,
         select: s.topic
       )
     )
@@ -31,13 +31,13 @@ defmodule Hedgehog.Data.Collector.DynamicWorkerSupervisor do
 
   def start_worker(topic) do
     Logger.info("Starting storing data from #{topic} topic")
-    update_status(topic, "on")
+    update_status(topic, :on)
     start_child(topic)
   end
 
   def stop_worker(topic) do
     Logger.info("Stopping storing data from #{topic} topic")
-    update_status(topic, "off")
+    update_status(topic, :off)
     stop_child(topic)
   end
 
@@ -56,7 +56,7 @@ defmodule Hedgehog.Data.Collector.DynamicWorkerSupervisor do
   end
 
   defp update_status(topic, status)
-       when is_binary(topic) and is_binary(status) do
+       when is_binary(topic) and status in [:on, :off] do
     %Settings{
       topic: topic,
       status: status

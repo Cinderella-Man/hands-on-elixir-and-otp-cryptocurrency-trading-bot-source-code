@@ -22,7 +22,7 @@ defmodule Hedgehog.Streamer.Binance.DynamicStreamerSupervisor do
   def autostart_workers do
     Repo.all(
       from(s in Settings,
-        where: s.status == "on",
+        where: s.status == :on,
         select: s.symbol
       )
     )
@@ -31,18 +31,18 @@ defmodule Hedgehog.Streamer.Binance.DynamicStreamerSupervisor do
 
   def start_worker(symbol) do
     Logger.info("Starting streaming #{symbol} trade events")
-    update_status(symbol, "on")
+    update_status(symbol, :on)
     start_child(symbol)
   end
 
   def stop_worker(symbol) do
     Logger.info("Stopping streaming #{symbol} trade events")
-    update_status(symbol, "off")
+    update_status(symbol, :off)
     stop_child(symbol)
   end
 
   defp update_status(symbol, status)
-       when is_binary(symbol) and is_binary(status) do
+       when is_binary(symbol) and status in [:on, :off] do
     Repo.get_by(Settings, symbol: symbol)
     |> Ecto.Changeset.change(%{status: status})
     |> Repo.update()

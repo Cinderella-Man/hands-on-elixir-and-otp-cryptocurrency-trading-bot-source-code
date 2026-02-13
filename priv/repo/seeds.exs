@@ -16,7 +16,7 @@ timestamp =
 
 base_settings = %{
   symbol: "",
-  status: "off",
+  status: :off,
   inserted_at: timestamp,
   updated_at: timestamp
 }
@@ -50,7 +50,7 @@ base_settings = %{
   buy_down_interval: Decimal.new(buy_down_interval),
   profit_target: Decimal.new(profit_target),
   rebuy_interval: Decimal.new(rebuy_interval),
-  status: "off",
+  status: :off,
   inserted_at: timestamp,
   updated_at: timestamp
 }

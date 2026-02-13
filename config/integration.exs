@@ -1,9 +1,8 @@
 import Config
 
 config :hedgehog, Hedgehog.Repo,
-  username: "postgres",
-  password: "postgres",
-  hostname: "localhost",
-  database: "hedgehog_test#{System.get_env("MIX_TEST_PARTITION")}",
-  pool: Ecto.Adapters.SQL.Sandbox,
-  pool_size: System.schedulers_online() * 2
+  database: Path.expand("../hedgehog_integration.db", Path.dirname(__ENV__.file)),
+  pool_size: 5,
+  pool: Ecto.Adapters.SQL.Sandbox
+
+config :hedgehog, Hedgehog.Litestream, enabled: false

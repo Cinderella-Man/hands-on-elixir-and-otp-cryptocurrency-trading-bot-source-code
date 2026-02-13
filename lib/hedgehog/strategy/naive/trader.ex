@@ -71,7 +71,7 @@ defmodule Hedgehog.Strategy.Naive.Trader do
         {:noreply, %{state | positions: updated_positions}}
 
       :exit ->
-        {:ok, _settings} = Formula.update_status(trade_event.symbol, "off")
+        {:ok, _settings} = Formula.update_status(trade_event.symbol, :off)
         Logger.info("Trading for #{trade_event.symbol} stopped")
         {:stop, :normal, state}
     end

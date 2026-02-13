@@ -49,7 +49,7 @@ defmodule Hedgehog.MixProject do
       {:phoenix, "~> 1.8.3"},
       {:phoenix_ecto, "~> 4.5"},
       {:ecto_sql, "~> 3.13"},
-      {:postgrex, ">= 0.0.0"},
+      {:ecto_sqlite3, "~> 0.22"},
       {:phoenix_html, "~> 4.1"},
       {:phoenix_live_reload, "~> 1.2", only: :dev},
       {:phoenix_live_view, "~> 1.1.0"},
@@ -74,9 +74,9 @@ defmodule Hedgehog.MixProject do
       {:bandit, "~> 1.5"},
       {:binance, "~> 1.0"},
       {:decimal, "~> 2.0"},
-      {:ecto_enum, "~> 1.4"},
       {:websockex, "~> 0.5"},
-      {:mimic, "~> 1.7", only: [:test, :integration]}
+      {:mimic, "~> 1.7", only: [:test, :integration]},
+      {:litestream, "~> 0.4"}
     ]
   end
 

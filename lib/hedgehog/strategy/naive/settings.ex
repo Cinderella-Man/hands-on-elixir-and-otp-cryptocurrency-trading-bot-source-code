@@ -1,8 +1,6 @@
 defmodule Hedgehog.Strategy.Naive.Settings do
   use Ecto.Schema
 
-  alias Hedgehog.Strategy.Naive.SettingsStatusEnum
-
   @primary_key {:id, :binary_id, autogenerate: true}
 
   schema "naive_strategy_settings" do
@@ -12,7 +10,7 @@ defmodule Hedgehog.Strategy.Naive.Settings do
     field(:buy_down_interval, :decimal)
     field(:profit_target, :decimal)
     field(:rebuy_interval, :decimal)
-    field(:status, SettingsStatusEnum)
+    field(:status, Ecto.Enum, values: [:on, :off, :shutdown])
 
     timestamps()
   end
