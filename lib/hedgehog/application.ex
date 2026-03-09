@@ -42,8 +42,14 @@ defmodule Hedgehog.Application do
     config = Application.get_env(:hedgehog, Hedgehog.Litestream, [])
 
     if Keyword.get(config, :enabled, false) do
-      opts = Keyword.drop(config, [:enabled])
-      [{Litestream, opts}]
+      strategy =
+        struct(Litestream.Strategy.ObjectStorage, config[:strategy])
+
+      opts =
+        config
+        |> Keyword.drop([:enabled, :strategy])
+
+      [{Litestream, Keyword.put(opts, :strategy, strategy)}]
     else
       []
     end

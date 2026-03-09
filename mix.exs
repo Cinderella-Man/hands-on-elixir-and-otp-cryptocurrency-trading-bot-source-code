@@ -76,7 +76,7 @@ defmodule Hedgehog.MixProject do
       {:decimal, "~> 2.0"},
       {:websockex, "~> 0.5"},
       {:mimic, "~> 1.7", only: [:test, :integration]},
-      {:litestream, "~> 0.4"}
+      {:litestream, git: "https://github.com/Cinderella-Man/litestream.git", branch: "supporting_multiple_backup_strategies"}
     ]
   end
 

@@ -39,3 +39,5 @@ npm-debug.log
 *.db
 *.db-shm
 *.db-wal
+.hedgehog_dev.db-litestream/
+priv/litestream

@@ -4,9 +4,30 @@ import Config
 config :hedgehog, Hedgehog.Repo,
   database: Path.expand("../hedgehog_dev.db", Path.dirname(__ENV__.file)),
   pool_size: 5,
-  show_sensitive_data_on_connection_error: true
+  show_sensitive_data_on_connection_error: true,
+  load_extensions: [
+    Path.expand("./priv/sqlite/litestream.so", __DIR__)
+  ]
 
-config :hedgehog, Hedgehog.Litestream, enabled: false
+litestream_endpoint =
+  System.get_env("LITESTREAM_ENDPOINT") ||
+    raise """
+    environment variable LITESTREAM_REPLICA_URL is missing.
+    For example: s3://hedgehog/db?endpoint=<account-id>.r2.cloudflarestorage.com
+    """
+
+config :hedgehog, Hedgehog.Litestream,
+  enabled: true,
+  repo: Hedgehog.Repo,
+  strategy: %{
+    endpoint: litestream_endpoint,
+    bucket: "hedgehog",
+    path: "my_backup",
+    region: "auto",
+    # override_architecture: :x86_64,
+    access_key_id: System.fetch_env!("LITESTREAM_ACCESS_KEY_ID"),
+    secret_access_key: System.fetch_env!("LITESTREAM_SECRET_ACCESS_KEY")
+  }
 
 # For development, we disable any cache and enable
 # debugging and code reloading.
